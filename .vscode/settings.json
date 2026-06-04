@@ -8,5 +8,7 @@
   },
   "ruff.enable": true,
   "ruff.organizeImports": true,
-  "ruff.fixAll": true
+  "ruff.fixAll": true,
+  "python-envs.defaultEnvManager": "ms-python.python:poetry",
+  "python-envs.defaultPackageManager": "ms-python.python:poetry"
 }

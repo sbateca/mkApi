@@ -1,1 +1,10 @@
+# Environment files
 .venv
+.env
+
+# cache files
+__pycache__/
+.ruff_cache/
+
+# IDE files
+.vscode/*
