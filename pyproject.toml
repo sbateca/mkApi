@@ -27,7 +27,8 @@ dev = [
     "ruff (>=0.15.15,<0.16.0)",
     "pytest (>=9.0.3,<10.0.0)",
     "pytest-asyncio (>=1.4.0,<2.0.0)",
-    "httpx (>=0.28.1,<0.29.0)"
+    "httpx (>=0.28.1,<0.29.0)",
+    "pytest-cov (>=7.1.0,<8.0.0)"
 ]
 
 
@@ -85,3 +86,14 @@ line-ending = "auto"
 pythonpath = [".", "src"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[tool.coverage.run]
+omit = [
+    "src/**/__init__.py",
+    "src/**/util/**",
+    "src/main.py",
+    "src/application/dto/**",
+    "src/domain/model/**",
+    "src/spi/**",
+    "src/infrastructure/configuration/**",
+]

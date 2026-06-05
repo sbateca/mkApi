@@ -1,0 +1,37 @@
+name: CI flow
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: Run test suite
+    runs-on: ubuntu-latest
+    environment: MKApiEnv
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pip install "poetry==2.4.1"
+
+      - name: Install dependencies
+        run: poetry install --with dev --no-interaction --no-root
+
+      - name: Run tests
+        env:
+          database_url: postgresql+asyncpg://postgres:postgres@localhost:5432/test
+        run: make test-coverage
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: true
