@@ -170,6 +170,38 @@ After startup, the interactive docs are available at:
 http://127.0.0.1:8000/docs
 ```
 
+## Docker
+
+Run the API with PostgreSQL in Docker:
+
+```sh
+make docker-up
+```
+
+Apply database migrations in the Docker PostgreSQL database:
+
+```sh
+make docker-migrate
+```
+
+Stop the Docker stack:
+
+```sh
+make docker-down
+```
+
+This starts two services:
+
+- `postgres`, available to the API as `postgres:5432`
+- `api`, available on `http://127.0.0.1:8000`
+
+If port `5432` is already used on your machine, change the host port for the
+PostgreSQL container:
+
+```sh
+make docker-up POSTGRES_HOST_PORT=5433
+```
+
 ## Database migrations
 
 Create a new Alembic revision:
