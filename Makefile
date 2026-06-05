@@ -2,13 +2,16 @@ IMAGE_NAME ?= mkapi
 HOST_PORT ?= 8000
 POSTGRES_HOST_PORT ?= 5433
 
-.PHONY: run test lint lint-fix format format-check quality clean docker-up docker-down docker-logs docker-migrate revision migrate downgrade current history
+.PHONY: run test test-coverage lint lint-fix format format-check quality clean docker-up docker-down docker-logs docker-migrate revision migrate downgrade current history
 
 run:
 	poetry run uvicorn main:app --reload --app-dir src
 
 test:
 	poetry run pytest
+
+test-coverage:
+	poetry run pytest --cov=src --cov-report=term --cov-report=xml
 
 lint:
 	poetry run ruff check .
