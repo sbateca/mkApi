@@ -1,5 +1,5 @@
-from application.dto.request.create_client_request_dto import (
-    CreateClientRequestDto,  # type: ignore
+from application.dto.request.create_client_request_dto import (  # type: ignore
+    CreateClientRequestDto,
 )
 
 

@@ -9,5 +9,9 @@ class ClientPersistencePort(ABC):
         pass
 
     @abstractmethod
+    async def get_clients(self) -> list[Client]:
+        pass
+
+    @abstractmethod
     async def get_client_by_email_or_nit(self, email: str, nit: str) -> Client | None:
         pass

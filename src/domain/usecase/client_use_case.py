@@ -18,6 +18,10 @@ class ClientUseCase(ClientServicePort):
 
         return await self.client_persistence_port.save_client(client)
 
+    async def get_clients(self) -> list[Client]:
+        clients = await self.client_persistence_port.get_clients()
+        return clients
+
     async def __validate_client(self, email: str, nit: str) -> None:
         stored_client = await self.client_persistence_port.get_client_by_email_or_nit(
             email, nit

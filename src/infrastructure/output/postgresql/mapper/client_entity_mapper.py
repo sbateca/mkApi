@@ -22,3 +22,6 @@ class ClientEntityMapper:
             nit=client_entity.nit,
             address=client_entity.address,
         )
+
+    def to_domain_list(self, client_entities: list[ClientEntity]) -> list[Client]:
+        return [self.to_domain(entity) for entity in client_entities]

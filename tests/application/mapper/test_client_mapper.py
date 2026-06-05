@@ -34,3 +34,22 @@ def test_to_response_maps_domain_model_to_response_dto():
     assert result.phone == client.phone
     assert result.nit == client.nit
     assert result.address == client.address
+
+
+def test_to_response_list_maps_domain_model_list_to_response_dto_list():
+    # Arrange
+    clients = [ClientBuilder().build(), ClientBuilder().build()]
+    mapper = ClientMapper()
+
+    # Act
+    result = mapper.to_response_list(clients)
+
+    # Assert
+    assert len(result) == len(clients)
+    for i in range(len(clients)):
+        assert result[i].id == clients[i].id
+        assert result[i].name == clients[i].name
+        assert result[i].email == clients[i].email
+        assert result[i].phone == clients[i].phone
+        assert result[i].nit == clients[i].nit
+        assert result[i].address == clients[i].address

@@ -7,3 +7,7 @@ class ClientServicePort(ABC):
     @abstractmethod
     async def create_client(self, client: Client) -> Client:
         pass
+
+    @abstractmethod
+    async def get_clients(self) -> list[Client]:
+        pass

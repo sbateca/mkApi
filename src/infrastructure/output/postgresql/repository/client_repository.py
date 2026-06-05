@@ -8,6 +8,10 @@ class ClientPostgreSQLRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def get_clients(self) -> list[ClientEntity]:
+        result = await self.session.execute(select(ClientEntity))
+        return result.scalars().all()
+
     async def save_client(self, client_entity: ClientEntity) -> ClientEntity:
         self.session.add(client_entity)
         await self.session.commit()

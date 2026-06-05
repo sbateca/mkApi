@@ -14,6 +14,10 @@ class ClientEntityBuilder:
         self._nit = "900123456"
         self._address = "Main Street 123"
 
+    def with_id(self, value: UUID) -> "ClientEntityBuilder":
+        self._id = value
+        return self
+
     def with_email(self, value: str) -> "ClientEntityBuilder":
         self._email = value
         return self

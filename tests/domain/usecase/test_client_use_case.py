@@ -69,3 +69,24 @@ async def test_create_client_preserves_existing_id():
     # Assert
     assert result.id == client_id
     persistence_port.save_client.assert_awaited_once_with(client)
+
+
+@pytest.mark.asyncio
+async def test_get_clients_returns_list_of_clients():
+    # Arrange
+    client1 = (
+        ClientBuilder().with_id(UUID("08dfffe2-c197-4726-b6ab-1e253c8e5f46")).build()
+    )
+    client2 = (
+        ClientBuilder().with_id(UUID("f2edbd83-8ea3-4f95-bc4b-28d33e40f81d")).build()
+    )
+    persistence_port = AsyncMock()
+    persistence_port.get_clients.return_value = [client1, client2]
+    use_case = ClientUseCase(persistence_port)
+
+    # Act
+    result = await use_case.get_clients()
+
+    # Assert
+    assert result == [client1, client2]
+    persistence_port.get_clients.assert_awaited_once()

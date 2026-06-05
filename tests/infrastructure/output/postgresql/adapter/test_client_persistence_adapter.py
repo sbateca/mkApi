@@ -84,3 +84,31 @@ async def test_get_client_by_email_or_nit_returns_none_when_entity_does_not_exis
         "missing@example.com",
         "missing-nit",
     )
+
+
+@pytest.mark.asyncio
+async def test_get_clients_returns_list_of_domain_models():
+    # Arrange
+    client_entity1 = (
+        ClientEntityBuilder().with_id("08dfffe2-c197-4726-b6ab-1e253c8e5f46").build()
+    )
+    client_entity2 = (
+        ClientEntityBuilder().with_id("12345678-1234-5678-1234-567812345678").build()
+    )
+    repository = AsyncMock()
+    repository.get_clients.return_value = [client_entity1, client_entity2]
+    adapter = ClientPersistenceAdapter(
+        client_repository=repository,
+        client_entity_mapper=ClientEntityMapper(),
+    )
+
+    # Act
+    result = await adapter.get_clients()
+
+    # Assert
+    repository.get_clients.assert_awaited_once()
+    assert len(result) == 2
+    assert result[0].id == client_entity1.id
+    assert result[0].email == client_entity1.email
+    assert result[1].id == client_entity2.id
+    assert result[1].email == client_entity2.email

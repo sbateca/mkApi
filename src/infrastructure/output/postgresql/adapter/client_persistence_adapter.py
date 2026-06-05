@@ -17,6 +17,10 @@ class ClientPersistenceAdapter(ClientPersistencePort):
         self.client_repository = client_repository
         self.client_entity_mapper = client_entity_mapper
 
+    async def get_clients(self) -> list[Client]:
+        client_entities = await self.client_repository.get_clients()
+        return self.client_entity_mapper.to_domain_list(client_entities)
+
     async def save_client(self, client: Client) -> Client:
         client_entity = self.client_entity_mapper.to_entity(client)
         saved_client_entity = await self.client_repository.save_client(client_entity)
