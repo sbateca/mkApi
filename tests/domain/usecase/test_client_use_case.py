@@ -3,7 +3,10 @@ from uuid import UUID
 
 import pytest
 
-from domain.exception.client_exception import ClientAlreadyExistsError  # type: ignore
+from domain.exception.client_exception import (  # type: ignore
+    ClientAlreadyExistsError,
+    ClientNotFoundError,
+)
 from domain.usecase.client_use_case import ClientUseCase  # type: ignore
 from tests.builders import ClientBuilder
 
@@ -90,3 +93,35 @@ async def test_get_clients_returns_list_of_clients():
     # Assert
     assert result == [client1, client2]
     persistence_port.get_clients.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_client_by_id_returns_client_when_found():
+    # Arrange
+    client_id = UUID("08dfffe2-c197-4726-b6ab-1e253c8e5f46")
+    client = ClientBuilder().with_id(client_id).build()
+    persistence_port = AsyncMock()
+    persistence_port.get_client_by_id.return_value = client
+    use_case = ClientUseCase(persistence_port)
+
+    # Act
+    result = await use_case.get_client_by_id(str(client_id))
+
+    # Assert
+    assert result == client
+    persistence_port.get_client_by_id.assert_awaited_once_with(str(client_id))
+
+
+@pytest.mark.asyncio
+async def test_get_client_by_id_raises_when_client_does_not_exist():
+    # Arrange
+    client_id = "08dfffe2-c197-4726-b6ab-1e253c8e5f46"
+    persistence_port = AsyncMock()
+    persistence_port.get_client_by_id.return_value = None
+    use_case = ClientUseCase(persistence_port)
+
+    # Act / Assert
+    with pytest.raises(ClientNotFoundError):
+        await use_case.get_client_by_id(client_id)
+
+    persistence_port.get_client_by_id.assert_awaited_once_with(client_id)

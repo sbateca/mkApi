@@ -12,6 +12,12 @@ class ClientPostgreSQLRepository:
         result = await self.session.execute(select(ClientEntity))
         return result.scalars().all()
 
+    async def get_client_by_id(self, client_id: str) -> ClientEntity | None:
+        result = await self.session.execute(
+            select(ClientEntity).where(ClientEntity.id == client_id)
+        )
+        return result.scalar_one_or_none()
+
     async def save_client(self, client_entity: ClientEntity) -> ClientEntity:
         self.session.add(client_entity)
         await self.session.commit()

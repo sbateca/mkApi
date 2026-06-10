@@ -11,3 +11,7 @@ class ClientServicePort(ABC):
     @abstractmethod
     async def get_clients(self) -> list[Client]:
         pass
+
+    @abstractmethod
+    async def get_client_by_id(self, client_id: str) -> Client:
+        pass

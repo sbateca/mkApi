@@ -1,4 +1,5 @@
 from unittest.mock import AsyncMock
+from uuid import UUID
 
 import pytest
 
@@ -112,3 +113,44 @@ async def test_get_clients_returns_list_of_domain_models():
     assert result[0].email == client_entity1.email
     assert result[1].id == client_entity2.id
     assert result[1].email == client_entity2.email
+
+
+@pytest.mark.asyncio
+async def test_get_client_by_id_returns_domain_model_when_entity_exists():
+    # Arrange
+    client_id = UUID("08dfffe2-c197-4726-b6ab-1e253c8e5f46")
+    client_entity = ClientEntityBuilder().with_id(client_id).build()
+    repository = AsyncMock()
+    repository.get_client_by_id.return_value = client_entity
+    adapter = ClientPersistenceAdapter(
+        client_repository=repository,
+        client_entity_mapper=ClientEntityMapper(),
+    )
+
+    # Act
+    result = await adapter.get_client_by_id(str(client_id))
+
+    # Assert
+    repository.get_client_by_id.assert_awaited_once_with(str(client_id))
+    assert result is not None
+    assert result.id == client_entity.id
+    assert result.email == client_entity.email
+
+
+@pytest.mark.asyncio
+async def test_get_client_by_id_returns_none_when_entity_does_not_exist():
+    # Arrange
+    client_id = "08dfffe2-c197-4726-b6ab-1e253c8e5f46"
+    repository = AsyncMock()
+    repository.get_client_by_id.return_value = None
+    adapter = ClientPersistenceAdapter(
+        client_repository=repository,
+        client_entity_mapper=ClientEntityMapper(),
+    )
+
+    # Act
+    result = await adapter.get_client_by_id(client_id)
+
+    # Assert
+    assert result is None
+    repository.get_client_by_id.assert_awaited_once_with(client_id)

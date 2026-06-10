@@ -1,4 +1,5 @@
 from application.dto.request.create_client_request_dto import CreateClientRequestDto
+from application.dto.request.get_client_by_id_request_dto import GetClientByIdRequestDto
 from application.dto.response.client_response_dto import ClientResponseDto
 from domain.model.client import Client
 
@@ -26,3 +27,6 @@ class ClientMapper:
 
     def to_response_list(self, clients: list[Client]) -> list[ClientResponseDto]:
         return [self.to_response(client) for client in clients]
+
+    def to_client_id(self, request: GetClientByIdRequestDto) -> str:
+        return request.client_id

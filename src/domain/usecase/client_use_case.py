@@ -1,7 +1,10 @@
 from uuid import uuid4
 
 from domain.api.client_service_port import ClientServicePort
-from domain.exception.client_exception import ClientAlreadyExistsError
+from domain.exception.client_exception import (
+    ClientAlreadyExistsError,
+    ClientNotFoundError,
+)
 from domain.model.client import Client
 from domain.spi.client_persistence_port import ClientPersistencePort
 
@@ -17,6 +20,12 @@ class ClientUseCase(ClientServicePort):
             client.id = uuid4()
 
         return await self.client_persistence_port.save_client(client)
+
+    async def get_client_by_id(self, client_id: str) -> Client:
+        client = await self.client_persistence_port.get_client_by_id(client_id)
+        if client is None:
+            raise ClientNotFoundError()
+        return client
 
     async def get_clients(self) -> list[Client]:
         clients = await self.client_persistence_port.get_clients()

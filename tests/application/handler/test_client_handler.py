@@ -2,6 +2,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from application.dto.request.get_client_by_id_request_dto import (  # type: ignore
+    GetClientByIdRequestDto,
+)
 from application.handler.impl.client_handler import ClientHandler  # type: ignore
 from application.mapper.client_mapper import ClientMapper  # type: ignore
 from tests.builders import ClientBuilder, CreateClientRequestDtoBuilder
@@ -51,3 +54,24 @@ async def test_get_clients_delegates_to_service_and_maps_response():
     for i in range(len(clients)):
         assert result[i].id == clients[i].id
         assert result[i].email == clients[i].email
+
+
+@pytest.mark.asyncio
+async def test_get_client_by_id_delegates_to_service_and_maps_response():
+    # Arrange
+    client = ClientBuilder().build()
+    request = GetClientByIdRequestDto(client_id=str(client.id))
+    client_service_port = AsyncMock()
+    client_service_port.get_client_by_id.return_value = client
+    handler = ClientHandler(
+        client_mapper=ClientMapper(),
+        client_service_port=client_service_port,
+    )
+
+    # Act
+    result = await handler.get_client_by_id(request)
+
+    # Assert
+    client_service_port.get_client_by_id.assert_awaited_once_with(str(client.id))
+    assert result.id == client.id
+    assert result.email == client.email

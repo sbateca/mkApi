@@ -2,6 +2,10 @@ from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from application.exception.request_validation_error import (
+    ApplicationRequestValidationError,
+)
+from application.util.constants import REQUEST_VALIDATION_FAILED_TEXT_MESSAGE
 from domain.exception.client_exception import (
     ClientAlreadyExistsError,
     ClientNotFoundError,
@@ -27,7 +31,9 @@ async def request_validation_exception_handler(
 
     for error in exception.errors():
         field = ".".join(
-            str(location) for location in error["loc"] if location != "body"
+            str(location)
+            for location in error["loc"]
+            if location not in ["body", "path", "query"]
         )
 
         errors.append(
@@ -41,7 +47,7 @@ async def request_validation_exception_handler(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={
             "code": "VALIDATION_ERROR",
-            "message": "Request validation failed",
+            "message": REQUEST_VALIDATION_FAILED_TEXT_MESSAGE,
             "errors": errors,
         },
     )
@@ -92,5 +98,19 @@ async def unexpected_exception_handler(
         content={
             "type": UnexpectedErrorType.UNEXPECTED_ERROR.value,
             "message": f"{UNEXPECTED_ERROR_MESSAGE}: {str(exception)}",
+        },
+    )
+
+
+async def application_request_validation_exception_handler(
+    request: Request,
+    exception: ApplicationRequestValidationError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        content={
+            "code": "VALIDATION_ERROR",
+            "message": REQUEST_VALIDATION_FAILED_TEXT_MESSAGE,
+            "errors": exception.errors,
         },
     )
