@@ -2,9 +2,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from application.dto.request.create_client_request_dto import ClientRequestDto
-from application.dto.request.get_client_by_id_request_dto import GetClientByIdRequestDto
-from application.dto.request.update_client_request_dto import UpdateClientRequestDto
+from application.dto.request import (
+    ClientRequestDto,
+    DeleteClientRequestDto,
+    GetClientByIdRequestDto,
+    UpdateClientRequestDto,
+)
 from application.dto.response.client_response_dto import ClientResponseDto
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
@@ -66,6 +69,25 @@ def build_update_client_request(
         raise ApplicationRequestValidationError(errors=errors) from error
 
 
+def build_delete_client_request(
+    client_id: str,
+) -> DeleteClientRequestDto:
+    try:
+        return DeleteClientRequestDto(client_id=client_id)
+    except ValueError as error:
+        errors = []
+
+        for err in error.errors(include_context=False):
+            errors.append(
+                {
+                    "field": err["loc"][0],
+                    "message": err["msg"],
+                }
+            )
+
+        raise ApplicationRequestValidationError(errors=errors) from error
+
+
 GetClientByIdRequestDependency = Annotated[
     GetClientByIdRequestDto,
     Depends(build_get_client_by_id_request),
@@ -75,6 +97,11 @@ GetClientByIdRequestDependency = Annotated[
 UpdateClientRequestDependency = Annotated[
     UpdateClientRequestDto,
     Depends(build_update_client_request),
+]
+
+DeleteClientByIdRequestDependency = Annotated[
+    DeleteClientRequestDto,
+    Depends(build_delete_client_request),
 ]
 
 
@@ -123,3 +150,14 @@ async def update_client(
     handler: ClientHandlerDependency,
 ) -> ClientResponseDto:
     return await handler.update_client(request)
+
+
+@router.delete(
+    "/{client_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_client(
+    request: DeleteClientByIdRequestDependency,
+    handler: ClientHandlerDependency,
+) -> None:
+    return await handler.delete_client(request)

@@ -2,6 +2,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from application.dto.request.delete_client_request_dto import (  # type: ignore
+    DeleteClientRequestDto,
+)
 from application.dto.request.get_client_by_id_request_dto import (  # type: ignore
     GetClientByIdRequestDto,
 )
@@ -121,3 +124,22 @@ async def test_update_client_maps_request_delegates_to_service_and_maps_response
     assert delegated_client.address == request_client.address
     assert result.id == client.id
     assert result.email == client.email
+
+
+@pytest.mark.asyncio
+async def test_delete_client_delegates_to_service():
+    # Arrange
+    client = ClientBuilder().build()
+    request = DeleteClientRequestDto(client_id=str(client.id))
+    client_service_port = AsyncMock()
+    handler = ClientHandler(
+        client_mapper=ClientMapper(),
+        client_service_port=client_service_port,
+    )
+
+    # Act
+    result = await handler.delete_client(request)
+
+    # Assert
+    assert result is None
+    client_service_port.delete_client.assert_awaited_once_with(str(client.id))

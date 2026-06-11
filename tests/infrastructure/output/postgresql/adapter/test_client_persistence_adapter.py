@@ -88,6 +88,65 @@ async def test_get_client_by_email_or_nit_returns_none_when_entity_does_not_exis
 
 
 @pytest.mark.asyncio
+async def test_get_client_by_email_or_nit_excluding_client_id_returns_domain_model_when_entity_exists():
+    # Arrange
+    client_id = "08dfffe2-c197-4726-b6ab-1e253c8e5f46"
+    client_entity = ClientEntityBuilder().build()
+    repository = AsyncMock()
+    repository.get_client_by_email_or_nit_excluding_client_id.return_value = (
+        client_entity
+    )
+    adapter = ClientPersistenceAdapter(
+        client_repository=repository,
+        client_entity_mapper=ClientEntityMapper(),
+    )
+
+    # Act
+    result = await adapter.get_client_by_email_or_nit_excluding_client_id(
+        client_entity.email,
+        client_entity.nit,
+        client_id,
+    )
+
+    # Assert
+    repository.get_client_by_email_or_nit_excluding_client_id.assert_awaited_once_with(
+        client_entity.email,
+        client_entity.nit,
+        client_id,
+    )
+    assert result is not None
+    assert result.id == client_entity.id
+    assert result.email == client_entity.email
+
+
+@pytest.mark.asyncio
+async def test_get_client_by_email_or_nit_excluding_client_id_returns_none_when_entity_does_not_exist():
+    # Arrange
+    client_id = "08dfffe2-c197-4726-b6ab-1e253c8e5f46"
+    repository = AsyncMock()
+    repository.get_client_by_email_or_nit_excluding_client_id.return_value = None
+    adapter = ClientPersistenceAdapter(
+        client_repository=repository,
+        client_entity_mapper=ClientEntityMapper(),
+    )
+
+    # Act
+    result = await adapter.get_client_by_email_or_nit_excluding_client_id(
+        "missing@example.com",
+        "missing-nit",
+        client_id,
+    )
+
+    # Assert
+    assert result is None
+    repository.get_client_by_email_or_nit_excluding_client_id.assert_awaited_once_with(
+        "missing@example.com",
+        "missing-nit",
+        client_id,
+    )
+
+
+@pytest.mark.asyncio
 async def test_get_clients_returns_list_of_domain_models():
     # Arrange
     client_entity1 = (
@@ -199,3 +258,21 @@ async def test_update_client_maps_domain_to_entity_and_returns_updated_domain_mo
     assert delegated_entity.address == client.address
     assert result.id == updated_entity.id
     assert result.email == updated_entity.email
+
+
+@pytest.mark.asyncio
+async def test_delete_client_delegates_to_repository():
+    # Arrange
+    client_id = "08dfffe2-c197-4726-b6ab-1e253c8e5f46"
+    repository = AsyncMock()
+    adapter = ClientPersistenceAdapter(
+        client_repository=repository,
+        client_entity_mapper=ClientEntityMapper(),
+    )
+
+    # Act
+    result = await adapter.delete_client(client_id)
+
+    # Assert
+    assert result is None
+    repository.delete_client.assert_awaited_once_with(client_id)

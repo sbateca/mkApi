@@ -256,3 +256,36 @@ async def test_update_client_raises_when_email_or_nit_belongs_to_another_client(
         client_id,
     )
     persistence_port.update_client.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_delete_client_deletes_existing_client():
+    # Arrange
+    client_id = UUID("08dfffe2-c197-4726-b6ab-1e253c8e5f46")
+    client = ClientBuilder().with_id(client_id).build()
+    persistence_port = AsyncMock()
+    persistence_port.get_client_by_id.return_value = client
+    use_case = ClientUseCase(persistence_port)
+
+    # Act
+    await use_case.delete_client(str(client_id))
+
+    # Assert
+    persistence_port.get_client_by_id.assert_awaited_once_with(str(client_id))
+    persistence_port.delete_client.assert_awaited_once_with(client_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_client_raises_when_client_does_not_exist():
+    # Arrange
+    client_id = "08dfffe2-c197-4726-b6ab-1e253c8e5f46"
+    persistence_port = AsyncMock()
+    persistence_port.get_client_by_id.return_value = None
+    use_case = ClientUseCase(persistence_port)
+
+    # Act / Assert
+    with pytest.raises(ClientNotFoundError):
+        await use_case.delete_client(client_id)
+
+    persistence_port.get_client_by_id.assert_awaited_once_with(client_id)
+    persistence_port.delete_client.assert_not_awaited()

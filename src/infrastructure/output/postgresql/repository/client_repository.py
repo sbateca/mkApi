@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.output.postgresql.entity.client_entity import ClientEntity
@@ -57,3 +57,9 @@ class ClientPostgreSQLRepository:
         await self.session.commit()
         await self.session.refresh(merged_client)
         return merged_client
+
+    async def delete_client(self, client_id: str) -> None:
+        await self.session.execute(
+            delete(ClientEntity).where(ClientEntity.id == client_id)
+        )
+        await self.session.commit()

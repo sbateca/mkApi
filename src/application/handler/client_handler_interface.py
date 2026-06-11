@@ -5,6 +5,7 @@ from application.dto.request import (
     GetClientByIdRequestDto,
     UpdateClientRequestDto,
 )
+from application.dto.request.delete_client_request_dto import DeleteClientRequestDto
 from application.dto.response import ClientResponseDto
 
 
@@ -25,4 +26,8 @@ class ClientHandlerInterface(ABC):
 
     @abstractmethod
     async def update_client(self, request: UpdateClientRequestDto) -> ClientResponseDto:
+        pass
+
+    @abstractmethod
+    async def delete_client(self, request: DeleteClientRequestDto) -> None:
         pass

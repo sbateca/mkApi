@@ -300,3 +300,93 @@ async def test_update_client_returns_validation_error_for_invalid_client_id():
         handler.update_client.assert_not_awaited()
     finally:
         app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_client_returns_no_content_from_handler():
+    # Arrange
+    client_id = "f2edbd83-8ea3-4f95-bc4b-28d33e40f81d"
+    handler = AsyncMock()
+    handler.delete_client.return_value = None
+    app.dependency_overrides[get_client_handler] = lambda: handler
+
+    transport = ASGITransport(app=app)
+
+    try:
+        async with AsyncClient(
+            transport=transport,
+            base_url="http://test",
+        ) as client:
+            # Act
+            result = await client.delete(f"/clients/{client_id}")
+
+        # Assert
+        assert result.status_code == 204
+        assert result.content == b""
+        handler.delete_client.assert_awaited_once()
+        delegated_request = handler.delete_client.await_args.args[0]
+        assert delegated_request.client_id == client_id
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_client_returns_not_found_when_handler_raises():
+    # Arrange
+    client_id = "f2edbd83-8ea3-4f95-bc4b-28d33e40f81d"
+    handler = AsyncMock()
+    handler.delete_client.side_effect = ClientNotFoundError()
+    app.dependency_overrides[get_client_handler] = lambda: handler
+
+    transport = ASGITransport(app=app)
+
+    try:
+        async with AsyncClient(
+            transport=transport,
+            base_url="http://test",
+        ) as client:
+            # Act
+            result = await client.delete(f"/clients/{client_id}")
+
+        # Assert
+        assert result.status_code == 404
+        assert result.json()["type"] == ClientErrorType.CLIENT_NOT_FOUND.value
+        assert result.json()["message"] == "The client was not found."
+        handler.delete_client.assert_awaited_once()
+        delegated_request = handler.delete_client.await_args.args[0]
+        assert delegated_request.client_id == client_id
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_client_returns_validation_error_for_invalid_client_id():
+    # Arrange
+    handler = AsyncMock()
+    app.dependency_overrides[get_client_handler] = lambda: handler
+
+    transport = ASGITransport(app=app)
+
+    try:
+        async with AsyncClient(
+            transport=transport,
+            base_url="http://test",
+        ) as client:
+            # Act
+            result = await client.delete("/clients/not-a-uuid")
+
+        # Assert
+        assert result.status_code == 422
+        assert result.json() == {
+            "code": "VALIDATION_ERROR",
+            "message": "Request validation failed",
+            "errors": [
+                {
+                    "field": "client_id",
+                    "message": "Value error, Client ID must be a valid UUID",
+                }
+            ],
+        }
+        handler.delete_client.assert_not_awaited()
+    finally:
+        app.dependency_overrides.clear()

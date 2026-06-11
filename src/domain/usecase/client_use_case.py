@@ -46,6 +46,10 @@ class ClientUseCase(ClientServicePort):
         client = await self.client_persistence_port.update_client(current_client)
         return client
 
+    async def delete_client(self, client_id) -> None:
+        client = await self.__request_client_by_id(client_id)
+        await self.client_persistence_port.delete_client(client.id)
+
     async def __validate_client(self, email: str, nit: str) -> None:
         stored_client = await self.client_persistence_port.get_client_by_email_or_nit(
             email, nit

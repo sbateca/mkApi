@@ -58,3 +58,6 @@ class ClientPersistenceAdapter(ClientPersistencePort):
             client_entity
         )
         return self.client_entity_mapper.to_domain(updated_client_entity)
+
+    async def delete_client(self, client_id: str):
+        await self.client_repository.delete_client(client_id)

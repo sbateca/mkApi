@@ -1,6 +1,9 @@
-from application.dto.request.create_client_request_dto import ClientRequestDto
-from application.dto.request.get_client_by_id_request_dto import GetClientByIdRequestDto
-from application.dto.request.update_client_request_dto import UpdateClientRequestDto
+from application.dto.request import (
+    ClientRequestDto,
+    DeleteClientRequestDto,
+    GetClientByIdRequestDto,
+    UpdateClientRequestDto,
+)
 from application.dto.response.client_response_dto import ClientResponseDto
 from application.handler.client_handler_interface import ClientHandlerInterface
 from application.mapper.client_mapper import ClientMapper
@@ -37,3 +40,6 @@ class ClientHandler(ClientHandlerInterface):
             client,
         )
         return self.client_mapper.to_response(updated_client)
+
+    async def delete_client(self, request: DeleteClientRequestDto) -> None:
+        await self.client_service_port.delete_client(request.client_id)

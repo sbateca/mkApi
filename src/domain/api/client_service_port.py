@@ -19,3 +19,7 @@ class ClientServicePort(ABC):
     @abstractmethod
     async def update_client(self, client_id: str, updated_client: Client) -> Client:
         pass
+
+    @abstractmethod
+    async def delete_client(self, client_id: str) -> None:
+        pass
