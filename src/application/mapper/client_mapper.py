@@ -1,11 +1,11 @@
-from application.dto.request.create_client_request_dto import CreateClientRequestDto
+from application.dto.request.create_client_request_dto import ClientRequestDto
 from application.dto.request.get_client_by_id_request_dto import GetClientByIdRequestDto
 from application.dto.response.client_response_dto import ClientResponseDto
 from domain.model.client import Client
 
 
 class ClientMapper:
-    def to_client(self, request: CreateClientRequestDto) -> Client:
+    def to_client(self, request: ClientRequestDto) -> Client:
         return Client(
             id=None,
             name=request.name,

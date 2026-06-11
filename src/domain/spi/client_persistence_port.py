@@ -17,5 +17,15 @@ class ClientPersistencePort(ABC):
         pass
 
     @abstractmethod
+    async def update_client(self, updated_client: Client) -> Client:
+        pass
+
+    @abstractmethod
     async def get_client_by_email_or_nit(self, email: str, nit: str) -> Client | None:
+        pass
+
+    @abstractmethod
+    async def get_client_by_email_or_nit_excluding_client_id(
+        self, email: str, nit: str, client_id: str
+    ) -> Client | None:
         pass

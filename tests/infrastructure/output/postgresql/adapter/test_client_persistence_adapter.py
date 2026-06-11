@@ -154,3 +154,48 @@ async def test_get_client_by_id_returns_none_when_entity_does_not_exist():
     # Assert
     assert result is None
     repository.get_client_by_id.assert_awaited_once_with(client_id)
+
+
+@pytest.mark.asyncio
+async def test_update_client_maps_domain_to_entity_and_returns_updated_domain_model():
+    # Arrange
+    client = (
+        ClientBuilder()
+        .with_name("Updated Labs")
+        .with_email("updated@example.com")
+        .with_phone("3011111111")
+        .with_nit("901111111")
+        .with_address("New Street 456")
+        .build()
+    )
+    updated_entity = (
+        ClientEntityBuilder()
+        .with_id(client.id)
+        .with_name(client.name)
+        .with_email(client.email)
+        .with_phone(client.phone)
+        .with_nit(client.nit)
+        .with_address(client.address)
+        .build()
+    )
+    repository = AsyncMock()
+    repository.update_client.return_value = updated_entity
+    adapter = ClientPersistenceAdapter(
+        client_repository=repository,
+        client_entity_mapper=ClientEntityMapper(),
+    )
+
+    # Act
+    result = await adapter.update_client(client)
+
+    # Assert
+    repository.update_client.assert_awaited_once()
+    delegated_entity = repository.update_client.await_args.args[0]
+    assert delegated_entity.id == client.id
+    assert delegated_entity.name == client.name
+    assert delegated_entity.email == client.email
+    assert delegated_entity.phone == client.phone
+    assert delegated_entity.nit == client.nit
+    assert delegated_entity.address == client.address
+    assert result.id == updated_entity.id
+    assert result.email == updated_entity.email

@@ -215,3 +215,88 @@ async def test_get_client_by_id_returns_bad_request_for_invalid_client_id():
         handler.get_client_by_id.assert_not_awaited()
     finally:
         app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_client_returns_ok_response_from_handler():
+    # Arrange
+    response = ClientResponseDtoBuilder().build()
+    handler = AsyncMock()
+    handler.update_client.return_value = response
+    app.dependency_overrides[get_client_handler] = lambda: handler
+
+    transport = ASGITransport(app=app)
+
+    try:
+        async with AsyncClient(
+            transport=transport,
+            base_url="http://test",
+        ) as client:
+            request_body = (
+                CreateClientRequestDtoBuilder()
+                .with_name("Updated Labs")
+                .with_email("updated@example.com")
+                .with_phone("3011111111")
+                .with_nit("901111111")
+                .with_address("New Street 456")
+                .build_dict()
+            )
+
+            # Act
+            result = await client.put(f"/clients/{response.id}", json=request_body)
+
+        # Assert
+        assert result.status_code == 200
+        assert result.json() == {
+            "id": str(response.id),
+            "name": response.name,
+            "email": response.email,
+            "phone": response.phone,
+            "nit": response.nit,
+            "address": response.address,
+        }
+        handler.update_client.assert_awaited_once()
+        delegated_request = handler.update_client.await_args.args[0]
+        assert delegated_request.client_id == str(response.id)
+        assert delegated_request.client.name == request_body["name"]
+        assert delegated_request.client.email == request_body["email"]
+        assert delegated_request.client.phone == request_body["phone"]
+        assert delegated_request.client.nit == request_body["nit"]
+        assert delegated_request.client.address == request_body["address"]
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_client_returns_validation_error_for_invalid_client_id():
+    # Arrange
+    handler = AsyncMock()
+    app.dependency_overrides[get_client_handler] = lambda: handler
+
+    transport = ASGITransport(app=app)
+
+    try:
+        async with AsyncClient(
+            transport=transport,
+            base_url="http://test",
+        ) as client:
+            request_body = CreateClientRequestDtoBuilder().build_dict()
+
+            # Act
+            result = await client.put("/clients/not-a-uuid", json=request_body)
+
+        # Assert
+        assert result.status_code == 422
+        assert result.json() == {
+            "code": "VALIDATION_ERROR",
+            "message": "Request validation failed",
+            "errors": [
+                {
+                    "field": "client_id",
+                    "message": "Value error, Client ID must be a valid UUID",
+                }
+            ],
+        }
+        handler.update_client.assert_not_awaited()
+    finally:
+        app.dependency_overrides.clear()

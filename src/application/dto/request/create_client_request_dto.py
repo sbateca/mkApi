@@ -1,9 +1,9 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from application.util.constants import ClientRequestError
+from application.dto.request.validators.client_validators import validate_not_blank
 
 
-class CreateClientRequestDto(BaseModel):
+class ClientRequestDto(BaseModel):
     name: str = Field(max_length=150)
     email: EmailStr
     phone: str = Field(min_length=7, max_length=20)
@@ -12,8 +12,5 @@ class CreateClientRequestDto(BaseModel):
 
     @field_validator("name", "phone", "nit", "address")
     @classmethod
-    def validate_not_blank(cls, value: str) -> str:
-        if not value.strip():
-            raise ValueError(ClientRequestError.BLANK_FIELD.value)
-
-        return value.strip()
+    def validate_not_blank_field(cls, value: str) -> str:
+        return validate_not_blank(value)

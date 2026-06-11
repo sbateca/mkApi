@@ -20,12 +20,24 @@ class ClientBuilder:
         self._id = value
         return self
 
+    def with_name(self, value: str) -> "ClientBuilder":
+        self._name = value
+        return self
+
     def with_email(self, value: str) -> "ClientBuilder":
         self._email = value
         return self
 
+    def with_phone(self, value: str) -> "ClientBuilder":
+        self._phone = value
+        return self
+
     def with_nit(self, value: str) -> "ClientBuilder":
         self._nit = value
+        return self
+
+    def with_address(self, value: str) -> "ClientBuilder":
+        self._address = value
         return self
 
     def build(self) -> Client:

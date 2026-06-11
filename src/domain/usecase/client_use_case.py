@@ -22,14 +22,29 @@ class ClientUseCase(ClientServicePort):
         return await self.client_persistence_port.save_client(client)
 
     async def get_client_by_id(self, client_id: str) -> Client:
-        client = await self.client_persistence_port.get_client_by_id(client_id)
-        if client is None:
-            raise ClientNotFoundError()
+        client = await self.__request_client_by_id(client_id)
         return client
 
     async def get_clients(self) -> list[Client]:
         clients = await self.client_persistence_port.get_clients()
         return clients
+
+    async def update_client(self, client_id: str, updated_client: Client) -> Client:
+        current_client = await self.__request_client_by_id(client_id)
+        await self.__validate_updated_client(
+            current_client.id,
+            updated_client.email,
+            updated_client.nit,
+        )
+
+        current_client.name = updated_client.name
+        current_client.email = updated_client.email
+        current_client.phone = updated_client.phone
+        current_client.nit = updated_client.nit
+        current_client.address = updated_client.address
+
+        client = await self.client_persistence_port.update_client(current_client)
+        return client
 
     async def __validate_client(self, email: str, nit: str) -> None:
         stored_client = await self.client_persistence_port.get_client_by_email_or_nit(
@@ -37,3 +52,21 @@ class ClientUseCase(ClientServicePort):
         )
         if stored_client:
             raise ClientAlreadyExistsError()
+
+    async def __validate_updated_client(
+        self,
+        current_client_id: str,
+        email: str,
+        nit: str,
+    ) -> None:
+        stored_client = await self.client_persistence_port.get_client_by_email_or_nit_excluding_client_id(
+            email, nit, current_client_id
+        )
+        if stored_client and str(stored_client.id) != str(current_client_id):
+            raise ClientAlreadyExistsError()
+
+    async def __request_client_by_id(self, client_id: str) -> Client:
+        client = await self.client_persistence_port.get_client_by_id(client_id)
+        if client is None:
+            raise ClientNotFoundError()
+        return client

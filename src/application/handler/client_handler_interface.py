@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
 
-from application.dto.request.create_client_request_dto import CreateClientRequestDto
-from application.dto.request.get_client_by_id_request_dto import GetClientByIdRequestDto
-from application.dto.response.client_response_dto import ClientResponseDto
+from application.dto.request import (
+    ClientRequestDto,
+    GetClientByIdRequestDto,
+    UpdateClientRequestDto,
+)
+from application.dto.response import ClientResponseDto
 
 
 class ClientHandlerInterface(ABC):
@@ -17,5 +20,9 @@ class ClientHandlerInterface(ABC):
         pass
 
     @abstractmethod
-    async def create_client(self, request: CreateClientRequestDto) -> ClientResponseDto:
+    async def create_client(self, request: ClientRequestDto) -> ClientResponseDto:
+        pass
+
+    @abstractmethod
+    async def update_client(self, request: UpdateClientRequestDto) -> ClientResponseDto:
         pass

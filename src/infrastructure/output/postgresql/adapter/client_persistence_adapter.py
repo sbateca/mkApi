@@ -39,3 +39,22 @@ class ClientPersistenceAdapter(ClientPersistencePort):
         if client_entity:
             return self.client_entity_mapper.to_domain(client_entity)
         return None
+
+    async def get_client_by_email_or_nit_excluding_client_id(
+        self, email: str, nit: str, client_id: str
+    ) -> Client | None:
+        client_entity = (
+            await self.client_repository.get_client_by_email_or_nit_excluding_client_id(
+                email, nit, client_id
+            )
+        )
+        if client_entity:
+            return self.client_entity_mapper.to_domain(client_entity)
+        return None
+
+    async def update_client(self, updated_client: Client) -> Client:
+        client_entity = self.client_entity_mapper.to_entity(updated_client)
+        updated_client_entity = await self.client_repository.update_client(
+            client_entity
+        )
+        return self.client_entity_mapper.to_domain(updated_client_entity)
