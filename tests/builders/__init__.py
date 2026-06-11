@@ -4,12 +4,12 @@ from tests.builders.create_client_request_dto_builder import (
     CreateClientRequestDtoBuilder,
 )
 from tests.builders.create_client_response_dto_builder import (
-    CreateClientResponseDtoBuilder,
+    ClientResponseDtoBuilder,
 )
 
 __all__ = [
     "ClientBuilder",
     "ClientEntityBuilder",
     "CreateClientRequestDtoBuilder",
-    "CreateClientResponseDtoBuilder",
+    "ClientResponseDtoBuilder",
 ]

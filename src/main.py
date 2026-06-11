@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 
+from application.exception.request_validation_error import (
+    ApplicationRequestValidationError,
+)
 from domain.exception.client_exception import (
     ClientAlreadyExistsError,
     ClientNotFoundError,
@@ -8,6 +11,7 @@ from domain.exception.client_exception import (
 from domain.exception.domain_exception import DomainError
 from infrastructure.input.rest.client_controller import router as client_router
 from infrastructure.input.rest.exception.exception_handler import (
+    application_request_validation_exception_handler,
     client_already_exists_excepion_handler,
     client_not_found_exception_handler,
     domain_exception_handler,
@@ -22,10 +26,14 @@ app = FastAPI(
 
 app.include_router(client_router)
 
-
 app.add_exception_handler(
     RequestValidationError,
     request_validation_exception_handler,
+)
+
+app.add_exception_handler(
+    ApplicationRequestValidationError,
+    application_request_validation_exception_handler,
 )
 app.add_exception_handler(
     ClientAlreadyExistsError, client_already_exists_excepion_handler

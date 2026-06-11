@@ -1,5 +1,5 @@
-from application.dto.request.create_client_request_dto import (
-    CreateClientRequestDto,  # type: ignore
+from application.dto.request.create_client_request_dto import (  # type: ignore
+    ClientRequestDto,
 )
 
 
@@ -15,8 +15,24 @@ class CreateClientRequestDtoBuilder:
         self._name = value
         return self
 
-    def build(self) -> CreateClientRequestDto:
-        return CreateClientRequestDto(
+    def with_email(self, value: str) -> "CreateClientRequestDtoBuilder":
+        self._email = value
+        return self
+
+    def with_phone(self, value: str) -> "CreateClientRequestDtoBuilder":
+        self._phone = value
+        return self
+
+    def with_nit(self, value: str) -> "CreateClientRequestDtoBuilder":
+        self._nit = value
+        return self
+
+    def with_address(self, value: str) -> "CreateClientRequestDtoBuilder":
+        self._address = value
+        return self
+
+    def build(self) -> ClientRequestDto:
+        return ClientRequestDto(
             name=self._name,
             email=self._email,
             phone=self._phone,

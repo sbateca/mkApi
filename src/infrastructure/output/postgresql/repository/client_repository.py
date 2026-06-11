@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.output.postgresql.entity.client_entity import ClientEntity
@@ -7,6 +7,16 @@ from infrastructure.output.postgresql.entity.client_entity import ClientEntity
 class ClientPostgreSQLRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
+
+    async def get_clients(self) -> list[ClientEntity]:
+        result = await self.session.execute(select(ClientEntity))
+        return result.scalars().all()
+
+    async def get_client_by_id(self, client_id: str) -> ClientEntity | None:
+        result = await self.session.execute(
+            select(ClientEntity).where(ClientEntity.id == client_id)
+        )
+        return result.scalar_one_or_none()
 
     async def save_client(self, client_entity: ClientEntity) -> ClientEntity:
         self.session.add(client_entity)
@@ -23,4 +33,33 @@ class ClientPostgreSQLRepository:
                 (ClientEntity.email == email) | (ClientEntity.nit == nit)
             )
         )
-        return result.scalar_one_or_none()
+
+        return result.scalars().first()
+
+    async def get_client_by_email_or_nit_excluding_client_id(
+        self,
+        email: str,
+        nit: str,
+        client_id: str,
+    ) -> ClientEntity | None:
+        result = await self.session.execute(
+            select(ClientEntity).where(
+                ((ClientEntity.email == email) | (ClientEntity.nit == nit))
+                & (ClientEntity.id != client_id)
+            )
+        )
+
+        return result.scalars().first()
+
+    async def update_client(self, client_entity: ClientEntity) -> ClientEntity:
+        merged_client = await self.session.merge(client_entity)
+
+        await self.session.commit()
+        await self.session.refresh(merged_client)
+        return merged_client
+
+    async def delete_client(self, client_id: str) -> None:
+        await self.session.execute(
+            delete(ClientEntity).where(ClientEntity.id == client_id)
+        )
+        await self.session.commit()

@@ -3,7 +3,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class CreateClientResponseDto(BaseModel):
+class ClientResponseDto(BaseModel):
     id: UUID | None
     name: str
     email: str

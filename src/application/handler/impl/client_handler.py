@@ -1,5 +1,10 @@
-from application.dto.request.create_client_request_dto import CreateClientRequestDto
-from application.dto.response.create_client_response_dto import CreateClientResponseDto
+from application.dto.request import (
+    ClientRequestDto,
+    DeleteClientRequestDto,
+    GetClientByIdRequestDto,
+    UpdateClientRequestDto,
+)
+from application.dto.response.client_response_dto import ClientResponseDto
 from application.handler.client_handler_interface import ClientHandlerInterface
 from application.mapper.client_mapper import ClientMapper
 from domain.api.client_service_port import ClientServicePort
@@ -12,9 +17,29 @@ class ClientHandler(ClientHandlerInterface):
         self.client_mapper = client_mapper
         self.client_service_port = client_service_port
 
-    async def create_client(
-        self, request: CreateClientRequestDto
-    ) -> CreateClientResponseDto:
+    async def get_clients(self) -> list[ClientResponseDto]:
+        clients = await self.client_service_port.get_clients()
+        return self.client_mapper.to_response_list(clients)
+
+    async def get_client_by_id(
+        self, request: GetClientByIdRequestDto
+    ) -> ClientResponseDto:
+        client_id = self.client_mapper.to_client_id(request)
+        client = await self.client_service_port.get_client_by_id(client_id)
+        return self.client_mapper.to_response(client)
+
+    async def create_client(self, request: ClientRequestDto) -> ClientResponseDto:
         client = self.client_mapper.to_client(request)
         created_client = await self.client_service_port.create_client(client)
         return self.client_mapper.to_response(created_client)
+
+    async def update_client(self, request: UpdateClientRequestDto) -> ClientResponseDto:
+        client = self.client_mapper.to_client(request.client)
+        updated_client = await self.client_service_port.update_client(
+            request.client_id,
+            client,
+        )
+        return self.client_mapper.to_response(updated_client)
+
+    async def delete_client(self, request: DeleteClientRequestDto) -> None:
+        await self.client_service_port.delete_client(request.client_id)
