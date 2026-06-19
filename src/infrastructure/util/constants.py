@@ -11,6 +11,11 @@ class AnalysisMethodErrorType(Enum):
     ANALYSIS_METHOD_NOT_FOUND = "ANALYSIS_METHOD_NOT_FOUND"
 
 
+class TestTypeErrorType(Enum):
+    TEST_TYPE_ALREADY_EXISTS = "TEST_TYPE_ALREADY_EXISTS"
+    TEST_TYPE_NOT_FOUND = "TEST_TYPE_NOT_FOUND"
+
+
 class DomainErrorType(Enum):
     DOMAIN_ERROR = "DOMAIN_ERROR"
 
