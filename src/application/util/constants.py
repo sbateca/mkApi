@@ -13,5 +13,11 @@ class AnalysisMethodRequestError(Enum):
     BLANK_NAME = "Analysis method name cannot be blank"
 
 
+class TestTypeRequestError(Enum):
+    BLANK_TEST_TYPE_ID = "Test type ID cannot be blank"
+    INVALID_TEST_TYPE_ID = "Test type ID must be a valid UUID"
+    BLANK_NAME = "Test type name cannot be blank"
+
+
 REQUEST_VALIDATION_FAILED_TEXT_MESSAGE = "Request validation failed"
 VALID_CLIENT_ID_REGEX = r"^[A-Za-z0-9_-]+$"

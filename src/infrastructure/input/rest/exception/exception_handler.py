@@ -15,18 +15,48 @@ from domain.exception.client_exception import (
     ClientNotFoundError,
 )
 from domain.exception.domain_exception import DomainError
+from domain.exception.test_type_exception import (
+    TestTypeAlreadyExistsError,
+    TestTypeNotFoundError,
+)
 from domain.util.constants import (
     ANALYSIS_METHOD_ALREADY_EXISTS_ERROR_MESSAGE,
     CLIENT_ALREADY_EXISTS_ERROR_MESSAGE,
     DOMAIN_ERROR_MESSAGE,
+    TEST_TYPE_ALREADY_EXISTS_ERROR_MESSAGE,
     UNEXPECTED_ERROR_MESSAGE,
 )
 from infrastructure.util.constants import (
     AnalysisMethodErrorType,
     ClientErrorType,
     DomainErrorType,
+    TestTypeErrorType,
     UnexpectedErrorType,
 )
+
+
+async def test_type_already_exists_exception_handler(
+    request: Request, exception: TestTypeAlreadyExistsError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            "type": TestTypeErrorType.TEST_TYPE_ALREADY_EXISTS.value,
+            "message": f"{TEST_TYPE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+        },
+    )
+
+
+async def test_type_not_found_exception_handler(
+    request: Request, exception: TestTypeNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            "type": TestTypeErrorType.TEST_TYPE_NOT_FOUND.value,
+            "message": str(exception),
+        },
+    )
 
 
 async def analysis_method_already_exists_exception_handler(

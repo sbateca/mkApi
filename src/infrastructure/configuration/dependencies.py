@@ -9,19 +9,28 @@ from application.handler.analysis_method_handler_interface import (
 from application.handler.client_handler_interface import ClientHandlerInterface
 from application.handler.impl.analysis_method_handler import AnalysisMethodHandler
 from application.handler.impl.client_handler import ClientHandler
+from application.handler.impl.test_type_handler import TestTypeHandler
+from application.handler.test_type_handler_interface import TestTypeHandlerInterface
 from application.mapper.analysis_method_mapper import AnalysisMethodMapper
 from application.mapper.client_mapper import ClientMapper
+from application.mapper.test_type_mapper import TestTypeMapper
 from domain.api.analysis_method_service_port import AnalysisMethodServicePort
 from domain.api.client_service_port import ClientServicePort
+from domain.api.test_type_service_port import TestTypeServicePort
 from domain.spi.analysis_method_persistence_port import AnalysisMethodPersistencePort
 from domain.spi.client_persistence_port import ClientPersistencePort
+from domain.spi.test_type_persistence_port import TestTypePersistencePort
 from domain.usecase.analysis_method_use_case import AnalysisMethodUseCase
 from domain.usecase.client_use_case import ClientUseCase
+from domain.usecase.test_type_use_case import TestTypeUseCase
 from infrastructure.output.postgresql.adapter.analysis_method_persistence_adapter import (
     AnalysisMethodPersistenceAdapter,
 )
 from infrastructure.output.postgresql.adapter.client_persistence_adapter import (
     ClientPersistenceAdapter,
+)
+from infrastructure.output.postgresql.adapter.test_type_persistence_adapter import (
+    TestTypePersistenceAdapter,
 )
 from infrastructure.output.postgresql.database.session import get_db_session
 from infrastructure.output.postgresql.mapper.analysis_method_entity_mapper import (
@@ -30,12 +39,58 @@ from infrastructure.output.postgresql.mapper.analysis_method_entity_mapper impor
 from infrastructure.output.postgresql.mapper.client_entity_mapper import (
     ClientEntityMapper,
 )
+from infrastructure.output.postgresql.mapper.test_type_entity_mapper import (
+    TestTypeEntityMapper,
+)
 from infrastructure.output.postgresql.repository.analysis_method_repository import (
     AnalysisMethodPostgreSQLRepository,
 )
 from infrastructure.output.postgresql.repository.client_repository import (
     ClientPostgreSQLRepository,
 )
+from infrastructure.output.postgresql.repository.test_type_repository import (
+    TestTypePostgreSQLRepository,
+)
+
+
+def get_test_type_mapper() -> TestTypeMapper:
+    return TestTypeMapper()
+
+
+def get_test_type_entity_mapper() -> TestTypeEntityMapper:
+    return TestTypeEntityMapper()
+
+
+def get_test_type_repository(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> TestTypePostgreSQLRepository:
+    return TestTypePostgreSQLRepository(session)
+
+
+def get_test_type_persistence_adapter(
+    repository: Annotated[
+        TestTypePostgreSQLRepository, Depends(get_test_type_repository)
+    ],
+    entity_mapper: Annotated[
+        TestTypeEntityMapper, Depends(get_test_type_entity_mapper)
+    ],
+) -> TestTypePersistencePort:
+    return TestTypePersistenceAdapter(repository, entity_mapper)
+
+
+def get_test_type_usecase(
+    persistence_port: Annotated[
+        TestTypePersistencePort, Depends(get_test_type_persistence_adapter)
+    ],
+) -> TestTypeServicePort:
+    return TestTypeUseCase(persistence_port)
+
+
+def get_test_type_handler(
+    mapper: Annotated[TestTypeMapper, Depends(get_test_type_mapper)],
+    service_port: Annotated[TestTypeServicePort, Depends(get_test_type_usecase)],
+) -> TestTypeHandlerInterface:
+    return TestTypeHandler(mapper, service_port)
 
 
 def get_analysis_method_mapper() -> AnalysisMethodMapper:
