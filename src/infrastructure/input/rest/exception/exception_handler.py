@@ -6,21 +6,53 @@ from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
 from application.util.constants import REQUEST_VALIDATION_FAILED_TEXT_MESSAGE
+from domain.exception.analysis_method_exception import (
+    AnalysisMethodAlreadyExistsError,
+    AnalysisMethodNotFoundError,
+)
 from domain.exception.client_exception import (
     ClientAlreadyExistsError,
     ClientNotFoundError,
 )
 from domain.exception.domain_exception import DomainError
 from domain.util.constants import (
+    ANALYSIS_METHOD_ALREADY_EXISTS_ERROR_MESSAGE,
     CLIENT_ALREADY_EXISTS_ERROR_MESSAGE,
     DOMAIN_ERROR_MESSAGE,
     UNEXPECTED_ERROR_MESSAGE,
 )
 from infrastructure.util.constants import (
+    AnalysisMethodErrorType,
     ClientErrorType,
     DomainErrorType,
     UnexpectedErrorType,
 )
+
+
+async def analysis_method_already_exists_exception_handler(
+    request: Request, exception: AnalysisMethodAlreadyExistsError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            "type": AnalysisMethodErrorType.ANALYSIS_METHOD_ALREADY_EXISTS.value,
+            "message": (
+                f"{ANALYSIS_METHOD_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}"
+            ),
+        },
+    )
+
+
+async def analysis_method_not_found_exception_handler(
+    request: Request, exception: AnalysisMethodNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            "type": AnalysisMethodErrorType.ANALYSIS_METHOD_NOT_FOUND.value,
+            "message": str(exception),
+        },
+    )
 
 
 async def request_validation_exception_handler(
