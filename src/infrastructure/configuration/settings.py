@@ -1,13 +1,12 @@
 from functools import lru_cache
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    database_url: str
+    model_config = SettingsConfigDict(env_file=".env.dev", extra="ignore")
 
-    class Config:
-        env_file = ".env"
+    database_url: str
 
 
 @lru_cache

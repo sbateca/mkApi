@@ -1,6 +1,8 @@
 # Environment files
 .venv
 .env
+.env.dev
+.env.prod
 
 # cache files
 __pycache__/
