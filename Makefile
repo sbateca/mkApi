@@ -2,10 +2,22 @@ IMAGE_NAME ?= mkapi
 HOST_PORT ?= 8000
 POSTGRES_HOST_PORT ?= 5433
 
-.PHONY: run test test-coverage lint lint-fix format format-check quality clean docker-up docker-down docker-logs docker-migrate revision migrate downgrade current history
+.PHONY: run run-otel test test-coverage lint lint-fix format format-check quality clean docker-up-dev docker-up-prod docker-down docker-logs docker-logs-otel docker-migrate revision migrate downgrade current history
 
 run:
 	poetry run uvicorn main:app --reload --app-dir src
+
+run-otel:
+	OTEL_SERVICE_NAME=mk-api-dev \
+	OTEL_RESOURCE_ATTRIBUTES=service.name=mk-api-dev,service.version=0.1.0,deployment.environment=development,service.namespace=mkapi \
+	OTEL_TRACES_EXPORTER=otlp \
+	OTEL_METRICS_EXPORTER=otlp \
+	OTEL_LOGS_EXPORTER=otlp \
+	OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 \
+	OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf \
+	OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true \
+	OTEL_PYTHON_LOG_LEVEL=info \
+	poetry run opentelemetry-instrument uvicorn main:app --reload --app-dir src
 
 test:
 	poetry run pytest
@@ -33,32 +45,37 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	find . -type d -name ".ruff_cache" -exec rm -rf {} +
-	find . -type d -name ".mypy_cache" -exec rm -rf {} +
+	rm -rf .coverage coverage.xml htmlcov
 
+docker-up-dev:
+	docker compose --env-file .env.dev up --build
 
-docker-up:
-	IMAGE_NAME=$(IMAGE_NAME) HOST_PORT=$(HOST_PORT) POSTGRES_HOST_PORT=$(POSTGRES_HOST_PORT) docker compose up --build
+docker-up-prod:
+	docker compose --env-file .env.prod up --build
 
 docker-down:
 	docker compose down
 
 docker-logs:
-	docker compose logs -f api postgres
+	docker compose logs -f
+
+docker-logs-otel:
+	docker logs -f otel-collector
 
 docker-migrate:
-	docker compose exec -T api alembic upgrade head
+	docker compose --env-file .env.dev exec mkapi poetry run alembic upgrade head
 
 revision:
-	PYTHONPATH=src poetry run alembic revision --autogenerate -m "$(m)"
+	poetry run alembic revision --autogenerate -m "$(m)"
 
 migrate:
-	PYTHONPATH=src poetry run alembic upgrade head
+	poetry run alembic upgrade head
 
 downgrade:
-	PYTHONPATH=src poetry run alembic downgrade -1
+	poetry run alembic downgrade -1
 
 current:
-	PYTHONPATH=src poetry run alembic current
+	poetry run alembic current
 
 history:
-	PYTHONPATH=src poetry run alembic history
+	poetry run alembic history

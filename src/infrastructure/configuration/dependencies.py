@@ -35,6 +35,9 @@ from domain.usecase.analyte_use_case import AnalyteUseCase
 from domain.usecase.client_use_case import ClientUseCase
 from domain.usecase.sample_type_use_case import SampleTypeUseCase
 from domain.usecase.test_type_use_case import TestTypeUseCase
+from infrastructure.output.observability.logger_adapter import (
+    LoggerAdapter,
+)
 from infrastructure.output.postgresql.adapter.analysis_method_persistence_adapter import (
     AnalysisMethodPersistenceAdapter,
 )
@@ -113,7 +116,7 @@ def get_sample_type_usecase(
         SampleTypePersistencePort, Depends(get_sample_type_persistence_adapter)
     ],
 ) -> SampleTypeServicePort:
-    return SampleTypeUseCase(persistence_port)
+    return SampleTypeUseCase(persistence_port, LoggerAdapter("mkapi.sample_type"))
 
 
 def get_sample_type_handler(
@@ -153,7 +156,7 @@ def get_test_type_usecase(
         TestTypePersistencePort, Depends(get_test_type_persistence_adapter)
     ],
 ) -> TestTypeServicePort:
-    return TestTypeUseCase(persistence_port)
+    return TestTypeUseCase(persistence_port, LoggerAdapter("mkapi.test_type"))
 
 
 def get_test_type_handler(
@@ -196,7 +199,11 @@ def get_analyte_usecase(
         TestTypePersistencePort, Depends(get_test_type_persistence_adapter)
     ],
 ) -> AnalyteServicePort:
-    return AnalyteUseCase(analyte_persistence_port, test_type_persistence_port)
+    return AnalyteUseCase(
+        analyte_persistence_port,
+        test_type_persistence_port,
+        LoggerAdapter("mkapi.analyte"),
+    )
 
 
 def get_analyte_handler(
@@ -239,7 +246,9 @@ def get_analysis_method_usecase(
         Depends(get_analysis_method_persistence_adapter),
     ],
 ) -> AnalysisMethodServicePort:
-    return AnalysisMethodUseCase(persistence_port)
+    return AnalysisMethodUseCase(
+        persistence_port, LoggerAdapter("mkapi.analysis_method")
+    )
 
 
 def get_analysis_method_handler(
@@ -290,6 +299,7 @@ def get_client_usecase(
 ) -> ClientServicePort:
     return ClientUseCase(
         client_persistence_port=client_persistence_port,
+        logger=LoggerAdapter("mkapi.client"),
     )
 
 
