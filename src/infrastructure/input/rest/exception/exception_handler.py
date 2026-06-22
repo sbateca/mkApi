@@ -19,6 +19,10 @@ from domain.exception.client_exception import (
     ClientNotFoundError,
 )
 from domain.exception.domain_exception import DomainError
+from domain.exception.sample_type_exception import (
+    SampleTypeAlreadyExistsError,
+    SampleTypeNotFoundError,
+)
 from domain.exception.test_type_exception import (
     TestTypeAlreadyExistsError,
     TestTypeNotFoundError,
@@ -28,6 +32,7 @@ from domain.util.constants import (
     ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE,
     CLIENT_ALREADY_EXISTS_ERROR_MESSAGE,
     DOMAIN_ERROR_MESSAGE,
+    SAMPLE_TYPE_ALREADY_EXISTS_ERROR_MESSAGE,
     TEST_TYPE_ALREADY_EXISTS_ERROR_MESSAGE,
     UNEXPECTED_ERROR_MESSAGE,
 )
@@ -36,9 +41,34 @@ from infrastructure.util.constants import (
     AnalyteErrorType,
     ClientErrorType,
     DomainErrorType,
+    SampleTypeErrorType,
     TestTypeErrorType,
     UnexpectedErrorType,
 )
+
+
+async def sample_type_already_exists_exception_handler(
+    request: Request, exception: SampleTypeAlreadyExistsError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            "type": SampleTypeErrorType.SAMPLE_TYPE_ALREADY_EXISTS.value,
+            "message": f"{SAMPLE_TYPE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+        },
+    )
+
+
+async def sample_type_not_found_exception_handler(
+    request: Request, exception: SampleTypeNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            "type": SampleTypeErrorType.SAMPLE_TYPE_NOT_FOUND.value,
+            "message": str(exception),
+        },
+    )
 
 
 async def analyte_already_exists_exception_handler(

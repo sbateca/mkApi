@@ -11,23 +11,29 @@ from application.handler.client_handler_interface import ClientHandlerInterface
 from application.handler.impl.analysis_method_handler import AnalysisMethodHandler
 from application.handler.impl.analyte_handler import AnalyteHandler
 from application.handler.impl.client_handler import ClientHandler
+from application.handler.impl.sample_type_handler import SampleTypeHandler
 from application.handler.impl.test_type_handler import TestTypeHandler
+from application.handler.sample_type_handler_interface import SampleTypeHandlerInterface
 from application.handler.test_type_handler_interface import TestTypeHandlerInterface
 from application.mapper.analysis_method_mapper import AnalysisMethodMapper
 from application.mapper.analyte_mapper import AnalyteMapper
 from application.mapper.client_mapper import ClientMapper
+from application.mapper.sample_type_mapper import SampleTypeMapper
 from application.mapper.test_type_mapper import TestTypeMapper
 from domain.api.analysis_method_service_port import AnalysisMethodServicePort
 from domain.api.analyte_service_port import AnalyteServicePort
 from domain.api.client_service_port import ClientServicePort
+from domain.api.sample_type_service_port import SampleTypeServicePort
 from domain.api.test_type_service_port import TestTypeServicePort
 from domain.spi.analysis_method_persistence_port import AnalysisMethodPersistencePort
 from domain.spi.analyte_persistence_port import AnalytePersistencePort
 from domain.spi.client_persistence_port import ClientPersistencePort
+from domain.spi.sample_type_persistence_port import SampleTypePersistencePort
 from domain.spi.test_type_persistence_port import TestTypePersistencePort
 from domain.usecase.analysis_method_use_case import AnalysisMethodUseCase
 from domain.usecase.analyte_use_case import AnalyteUseCase
 from domain.usecase.client_use_case import ClientUseCase
+from domain.usecase.sample_type_use_case import SampleTypeUseCase
 from domain.usecase.test_type_use_case import TestTypeUseCase
 from infrastructure.output.postgresql.adapter.analysis_method_persistence_adapter import (
     AnalysisMethodPersistenceAdapter,
@@ -37,6 +43,9 @@ from infrastructure.output.postgresql.adapter.analyte_persistence_adapter import
 )
 from infrastructure.output.postgresql.adapter.client_persistence_adapter import (
     ClientPersistenceAdapter,
+)
+from infrastructure.output.postgresql.adapter.sample_type_persistence_adapter import (
+    SampleTypePersistenceAdapter,
 )
 from infrastructure.output.postgresql.adapter.test_type_persistence_adapter import (
     TestTypePersistenceAdapter,
@@ -51,6 +60,9 @@ from infrastructure.output.postgresql.mapper.analyte_entity_mapper import (
 from infrastructure.output.postgresql.mapper.client_entity_mapper import (
     ClientEntityMapper,
 )
+from infrastructure.output.postgresql.mapper.sample_type_entity_mapper import (
+    SampleTypeEntityMapper,
+)
 from infrastructure.output.postgresql.mapper.test_type_entity_mapper import (
     TestTypeEntityMapper,
 )
@@ -63,9 +75,52 @@ from infrastructure.output.postgresql.repository.analyte_repository import (
 from infrastructure.output.postgresql.repository.client_repository import (
     ClientPostgreSQLRepository,
 )
+from infrastructure.output.postgresql.repository.sample_type_repository import (
+    SampleTypePostgreSQLRepository,
+)
 from infrastructure.output.postgresql.repository.test_type_repository import (
     TestTypePostgreSQLRepository,
 )
+
+
+def get_sample_type_mapper() -> SampleTypeMapper:
+    return SampleTypeMapper()
+
+
+def get_sample_type_entity_mapper() -> SampleTypeEntityMapper:
+    return SampleTypeEntityMapper()
+
+
+def get_sample_type_repository(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SampleTypePostgreSQLRepository:
+    return SampleTypePostgreSQLRepository(session)
+
+
+def get_sample_type_persistence_adapter(
+    repository: Annotated[
+        SampleTypePostgreSQLRepository, Depends(get_sample_type_repository)
+    ],
+    entity_mapper: Annotated[
+        SampleTypeEntityMapper, Depends(get_sample_type_entity_mapper)
+    ],
+) -> SampleTypePersistencePort:
+    return SampleTypePersistenceAdapter(repository, entity_mapper)
+
+
+def get_sample_type_usecase(
+    persistence_port: Annotated[
+        SampleTypePersistencePort, Depends(get_sample_type_persistence_adapter)
+    ],
+) -> SampleTypeServicePort:
+    return SampleTypeUseCase(persistence_port)
+
+
+def get_sample_type_handler(
+    mapper: Annotated[SampleTypeMapper, Depends(get_sample_type_mapper)],
+    service: Annotated[SampleTypeServicePort, Depends(get_sample_type_usecase)],
+) -> SampleTypeHandlerInterface:
+    return SampleTypeHandler(mapper, service)
 
 
 def get_test_type_mapper() -> TestTypeMapper:

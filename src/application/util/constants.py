@@ -27,5 +27,11 @@ class AnalyteRequestError(Enum):
     BLANK_NAME = "Analyte name cannot be blank"
 
 
+class SampleTypeRequestError(Enum):
+    BLANK_SAMPLE_TYPE_ID = "Sample type ID cannot be blank"
+    INVALID_SAMPLE_TYPE_ID = "Sample type ID must be a valid UUID"
+    BLANK_NAME = "Sample type name cannot be blank"
+
+
 REQUEST_VALIDATION_FAILED_TEXT_MESSAGE = "Request validation failed"
 VALID_CLIENT_ID_REGEX = r"^[A-Za-z0-9_-]+$"
