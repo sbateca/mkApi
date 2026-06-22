@@ -33,7 +33,7 @@ def test_test_type_mapper_maps_requests_domain_and_responses():
         GetTestTypeByIdRequestDto(test_type_id=str(TEST_TYPE_ID))
     )
 
-    assert domain == DomainTestType(name="Physical-Chemical")
+    assert domain == DomainTestType(name="Physical-chemical")
     assert response.id == TEST_TYPE_ID
     assert response.name == "Physical-Chemical"
     assert responses == [response]

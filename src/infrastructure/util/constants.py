@@ -21,6 +21,11 @@ class AnalyteErrorType(Enum):
     ANALYTE_NOT_FOUND = "ANALYTE_NOT_FOUND"
 
 
+class SampleTypeErrorType(Enum):
+    SAMPLE_TYPE_ALREADY_EXISTS = "SAMPLE_TYPE_ALREADY_EXISTS"
+    SAMPLE_TYPE_NOT_FOUND = "SAMPLE_TYPE_NOT_FOUND"
+
+
 class DomainErrorType(Enum):
     DOMAIN_ERROR = "DOMAIN_ERROR"
 
