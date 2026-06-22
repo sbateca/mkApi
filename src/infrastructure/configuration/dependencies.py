@@ -6,25 +6,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from application.handler.analysis_method_handler_interface import (
     AnalysisMethodHandlerInterface,
 )
+from application.handler.analyte_handler_interface import AnalyteHandlerInterface
 from application.handler.client_handler_interface import ClientHandlerInterface
 from application.handler.impl.analysis_method_handler import AnalysisMethodHandler
+from application.handler.impl.analyte_handler import AnalyteHandler
 from application.handler.impl.client_handler import ClientHandler
 from application.handler.impl.test_type_handler import TestTypeHandler
 from application.handler.test_type_handler_interface import TestTypeHandlerInterface
 from application.mapper.analysis_method_mapper import AnalysisMethodMapper
+from application.mapper.analyte_mapper import AnalyteMapper
 from application.mapper.client_mapper import ClientMapper
 from application.mapper.test_type_mapper import TestTypeMapper
 from domain.api.analysis_method_service_port import AnalysisMethodServicePort
+from domain.api.analyte_service_port import AnalyteServicePort
 from domain.api.client_service_port import ClientServicePort
 from domain.api.test_type_service_port import TestTypeServicePort
 from domain.spi.analysis_method_persistence_port import AnalysisMethodPersistencePort
+from domain.spi.analyte_persistence_port import AnalytePersistencePort
 from domain.spi.client_persistence_port import ClientPersistencePort
 from domain.spi.test_type_persistence_port import TestTypePersistencePort
 from domain.usecase.analysis_method_use_case import AnalysisMethodUseCase
+from domain.usecase.analyte_use_case import AnalyteUseCase
 from domain.usecase.client_use_case import ClientUseCase
 from domain.usecase.test_type_use_case import TestTypeUseCase
 from infrastructure.output.postgresql.adapter.analysis_method_persistence_adapter import (
     AnalysisMethodPersistenceAdapter,
+)
+from infrastructure.output.postgresql.adapter.analyte_persistence_adapter import (
+    AnalytePersistenceAdapter,
 )
 from infrastructure.output.postgresql.adapter.client_persistence_adapter import (
     ClientPersistenceAdapter,
@@ -36,6 +45,9 @@ from infrastructure.output.postgresql.database.session import get_db_session
 from infrastructure.output.postgresql.mapper.analysis_method_entity_mapper import (
     AnalysisMethodEntityMapper,
 )
+from infrastructure.output.postgresql.mapper.analyte_entity_mapper import (
+    AnalyteEntityMapper,
+)
 from infrastructure.output.postgresql.mapper.client_entity_mapper import (
     ClientEntityMapper,
 )
@@ -44,6 +56,9 @@ from infrastructure.output.postgresql.mapper.test_type_entity_mapper import (
 )
 from infrastructure.output.postgresql.repository.analysis_method_repository import (
     AnalysisMethodPostgreSQLRepository,
+)
+from infrastructure.output.postgresql.repository.analyte_repository import (
+    AnalytePostgreSQLRepository,
 )
 from infrastructure.output.postgresql.repository.client_repository import (
     ClientPostgreSQLRepository,
@@ -91,6 +106,49 @@ def get_test_type_handler(
     service_port: Annotated[TestTypeServicePort, Depends(get_test_type_usecase)],
 ) -> TestTypeHandlerInterface:
     return TestTypeHandler(mapper, service_port)
+
+
+def get_analyte_mapper() -> AnalyteMapper:
+    return AnalyteMapper()
+
+
+def get_analyte_entity_mapper(
+    test_type_entity_mapper: Annotated[
+        TestTypeEntityMapper, Depends(get_test_type_entity_mapper)
+    ],
+) -> AnalyteEntityMapper:
+    return AnalyteEntityMapper(test_type_entity_mapper)
+
+
+def get_analyte_repository(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> AnalytePostgreSQLRepository:
+    return AnalytePostgreSQLRepository(session)
+
+
+def get_analyte_persistence_adapter(
+    repository: Annotated[AnalytePostgreSQLRepository, Depends(get_analyte_repository)],
+    entity_mapper: Annotated[AnalyteEntityMapper, Depends(get_analyte_entity_mapper)],
+) -> AnalytePersistencePort:
+    return AnalytePersistenceAdapter(repository, entity_mapper)
+
+
+def get_analyte_usecase(
+    analyte_persistence_port: Annotated[
+        AnalytePersistencePort, Depends(get_analyte_persistence_adapter)
+    ],
+    test_type_persistence_port: Annotated[
+        TestTypePersistencePort, Depends(get_test_type_persistence_adapter)
+    ],
+) -> AnalyteServicePort:
+    return AnalyteUseCase(analyte_persistence_port, test_type_persistence_port)
+
+
+def get_analyte_handler(
+    mapper: Annotated[AnalyteMapper, Depends(get_analyte_mapper)],
+    service: Annotated[AnalyteServicePort, Depends(get_analyte_usecase)],
+) -> AnalyteHandlerInterface:
+    return AnalyteHandler(mapper, service)
 
 
 def get_analysis_method_mapper() -> AnalysisMethodMapper:

@@ -9,3 +9,6 @@ ANALYSIS_METHOD_NOT_FOUND_ERROR_MESSAGE = "The analysis method was not found."
 
 TEST_TYPE_ALREADY_EXISTS_ERROR_MESSAGE = "The test type already exists."
 TEST_TYPE_NOT_FOUND_ERROR_MESSAGE = "The test type was not found."
+
+ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE = "The analyte already exists."
+ANALYTE_NOT_FOUND_ERROR_MESSAGE = "The analyte was not found."
