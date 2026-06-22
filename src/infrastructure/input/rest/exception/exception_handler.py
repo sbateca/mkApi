@@ -10,6 +10,10 @@ from domain.exception.analysis_method_exception import (
     AnalysisMethodAlreadyExistsError,
     AnalysisMethodNotFoundError,
 )
+from domain.exception.analyte_exception import (
+    AnalyteAlreadyExistsError,
+    AnalyteNotFoundError,
+)
 from domain.exception.client_exception import (
     ClientAlreadyExistsError,
     ClientNotFoundError,
@@ -21,6 +25,7 @@ from domain.exception.test_type_exception import (
 )
 from domain.util.constants import (
     ANALYSIS_METHOD_ALREADY_EXISTS_ERROR_MESSAGE,
+    ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE,
     CLIENT_ALREADY_EXISTS_ERROR_MESSAGE,
     DOMAIN_ERROR_MESSAGE,
     TEST_TYPE_ALREADY_EXISTS_ERROR_MESSAGE,
@@ -28,11 +33,36 @@ from domain.util.constants import (
 )
 from infrastructure.util.constants import (
     AnalysisMethodErrorType,
+    AnalyteErrorType,
     ClientErrorType,
     DomainErrorType,
     TestTypeErrorType,
     UnexpectedErrorType,
 )
+
+
+async def analyte_already_exists_exception_handler(
+    request: Request, exception: AnalyteAlreadyExistsError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            "type": AnalyteErrorType.ANALYTE_ALREADY_EXISTS.value,
+            "message": f"{ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+        },
+    )
+
+
+async def analyte_not_found_exception_handler(
+    request: Request, exception: AnalyteNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            "type": AnalyteErrorType.ANALYTE_NOT_FOUND.value,
+            "message": str(exception),
+        },
+    )
 
 
 async def test_type_already_exists_exception_handler(
