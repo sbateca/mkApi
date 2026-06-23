@@ -16,6 +16,10 @@ from domain.exception.client_exception import (
     ClientAlreadyExistsError,
     ClientNotFoundError,
 )
+from domain.exception.criteria_exception import (
+    CriteriaAlreadyExistsError,
+    CriteriaNotFoundError,
+)
 from domain.exception.domain_exception import DomainError
 from domain.exception.sample_type_exception import (
     SampleTypeAlreadyExistsError,
@@ -30,6 +34,7 @@ from infrastructure.input.rest.analysis_method_controller import (
 )
 from infrastructure.input.rest.analyte_controller import router as analyte_router
 from infrastructure.input.rest.client_controller import router as client_router
+from infrastructure.input.rest.criteria_controller import router as criteria_router
 from infrastructure.input.rest.exception.exception_handler import (
     analysis_method_already_exists_exception_handler,
     analysis_method_not_found_exception_handler,
@@ -38,6 +43,8 @@ from infrastructure.input.rest.exception.exception_handler import (
     application_request_validation_exception_handler,
     client_already_exists_excepion_handler,
     client_not_found_exception_handler,
+    criteria_already_exists_exception_handler,
+    criteria_not_found_exception_handler,
     domain_exception_handler,
     request_validation_exception_handler,
     sample_type_already_exists_exception_handler,
@@ -61,6 +68,7 @@ app.include_router(analysis_method_router)
 app.include_router(test_type_router)
 app.include_router(analyte_router)
 app.include_router(sample_type_router)
+app.include_router(criteria_router)
 
 app.add_exception_handler(
     RequestValidationError,
@@ -103,6 +111,14 @@ app.add_exception_handler(
 app.add_exception_handler(
     SampleTypeNotFoundError,
     sample_type_not_found_exception_handler,
+)
+app.add_exception_handler(
+    CriteriaAlreadyExistsError,
+    criteria_already_exists_exception_handler,
+)
+app.add_exception_handler(
+    CriteriaNotFoundError,
+    criteria_not_found_exception_handler,
 )
 app.add_exception_handler(DomainError, domain_exception_handler)
 app.add_exception_handler(Exception, unexpected_exception_handler)

@@ -33,5 +33,11 @@ class SampleTypeRequestError(Enum):
     BLANK_NAME = "Sample type name cannot be blank"
 
 
+class CriteriaRequestError(Enum):
+    BLANK_CRITERIA_ID = "Criteria ID cannot be blank"
+    INVALID_CRITERIA_ID = "Criteria ID must be a valid UUID"
+    BLANK_NAME = "Criteria name cannot be blank"
+
+
 REQUEST_VALIDATION_FAILED_TEXT_MESSAGE = "Request validation failed"
 VALID_CLIENT_ID_REGEX = r"^[A-Za-z0-9_-]+$"

@@ -18,6 +18,10 @@ from domain.exception.client_exception import (
     ClientAlreadyExistsError,
     ClientNotFoundError,
 )
+from domain.exception.criteria_exception import (
+    CriteriaAlreadyExistsError,
+    CriteriaNotFoundError,
+)
 from domain.exception.domain_exception import DomainError
 from domain.exception.sample_type_exception import (
     SampleTypeAlreadyExistsError,
@@ -31,6 +35,7 @@ from domain.util.constants import (
     ANALYSIS_METHOD_ALREADY_EXISTS_ERROR_MESSAGE,
     ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE,
     CLIENT_ALREADY_EXISTS_ERROR_MESSAGE,
+    CRITERIA_ALREADY_EXISTS_ERROR_MESSAGE,
     DOMAIN_ERROR_MESSAGE,
     SAMPLE_TYPE_ALREADY_EXISTS_ERROR_MESSAGE,
     TEST_TYPE_ALREADY_EXISTS_ERROR_MESSAGE,
@@ -40,11 +45,36 @@ from infrastructure.util.constants import (
     AnalysisMethodErrorType,
     AnalyteErrorType,
     ClientErrorType,
+    CriteriaErrorType,
     DomainErrorType,
     SampleTypeErrorType,
     TestTypeErrorType,
     UnexpectedErrorType,
 )
+
+
+async def criteria_already_exists_exception_handler(
+    request: Request, exception: CriteriaAlreadyExistsError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            "type": CriteriaErrorType.CRITERIA_ALREADY_EXISTS.value,
+            "message": f"{CRITERIA_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+        },
+    )
+
+
+async def criteria_not_found_exception_handler(
+    request: Request, exception: CriteriaNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            "type": CriteriaErrorType.CRITERIA_NOT_FOUND.value,
+            "message": str(exception),
+        },
+    )
 
 
 async def sample_type_already_exists_exception_handler(

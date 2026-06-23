@@ -26,6 +26,11 @@ class SampleTypeErrorType(Enum):
     SAMPLE_TYPE_NOT_FOUND = "SAMPLE_TYPE_NOT_FOUND"
 
 
+class CriteriaErrorType(Enum):
+    CRITERIA_ALREADY_EXISTS = "CRITERIA_ALREADY_EXISTS"
+    CRITERIA_NOT_FOUND = "CRITERIA_NOT_FOUND"
+
+
 class DomainErrorType(Enum):
     DOMAIN_ERROR = "DOMAIN_ERROR"
 

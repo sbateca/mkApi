@@ -9,4 +9,4 @@ def capitalize_str(text: str) -> str:
     if text is None:
         return ""
 
-    return text.capitalize()
+    return text.strip().capitalize()

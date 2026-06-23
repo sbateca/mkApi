@@ -15,3 +15,6 @@ ANALYTE_NOT_FOUND_ERROR_MESSAGE = "The analyte was not found."
 
 SAMPLE_TYPE_ALREADY_EXISTS_ERROR_MESSAGE = "The sample type already exists."
 SAMPLE_TYPE_NOT_FOUND_ERROR_MESSAGE = "The sample type was not found."
+
+CRITERIA_ALREADY_EXISTS_ERROR_MESSAGE = "The criteria already exists."
+CRITERIA_NOT_FOUND_ERROR_MESSAGE = "The criteria was not found."
