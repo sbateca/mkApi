@@ -1,11 +1,13 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from application.dto.request.validators.common_validators import validate_uuid
 from application.util.constants import CriteriaRequestError
 
 
 class DeleteCriteriaRequestDto(BaseModel):
-    criteria_id: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    criteria_id: str = Field(alias="criteriaId")
 
     @field_validator("criteria_id")
     @classmethod

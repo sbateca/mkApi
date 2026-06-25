@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from application.dto.request.validators.common_validators import (
     validate_not_blank_value,
@@ -9,8 +9,10 @@ from domain.util.str_functions import capitalize_str
 
 
 class AnalyteRequestDto(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     name: str = Field(max_length=150)
-    test_type_id: str
+    test_type_id: str = Field(alias="testTypeId")
 
     @field_validator("name")
     @classmethod

@@ -40,7 +40,7 @@ async def test_analyte_crud_routes_delegate_to_handler():
     handler.update_analyte.return_value = item
     handler.delete_analyte.return_value = None
     app.dependency_overrides[get_analyte_handler] = lambda: handler
-    body = {"name": "pH", "test_type_id": str(TEST_TYPE_ID)}
+    body = {"name": "pH", "testTypeId": str(TEST_TYPE_ID)}
 
     try:
         async with AsyncClient(
@@ -55,7 +55,7 @@ async def test_analyte_crud_routes_delegate_to_handler():
         expected = {
             "id": str(ANALYTE_ID),
             "name": "pH",
-            "test_type": {
+            "testType": {
                 "id": str(TEST_TYPE_ID),
                 "name": "Physical-Chemical",
             },
@@ -86,10 +86,10 @@ async def test_analyte_routes_validate_body_and_path_ids():
         ) as client:
             blank_name = await client.post(
                 "/analytes",
-                json={"name": "  ", "test_type_id": str(TEST_TYPE_ID)},
+                json={"name": "  ", "testTypeId": str(TEST_TYPE_ID)},
             )
             bad_test_type = await client.post(
-                "/analytes", json={"name": "pH", "test_type_id": "invalid"}
+                "/analytes", json={"name": "pH", "testTypeId": "invalid"}
             )
             bad_path = await client.get("/analytes/invalid")
 
@@ -121,7 +121,7 @@ async def test_create_analyte_maps_domain_errors(exception, status_code, error_t
         ) as client:
             result = await client.post(
                 "/analytes",
-                json={"name": "pH", "test_type_id": str(TEST_TYPE_ID)},
+                json={"name": "pH", "testTypeId": str(TEST_TYPE_ID)},
             )
 
         assert result.status_code == status_code

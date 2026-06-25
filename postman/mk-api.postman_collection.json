@@ -137,7 +137,7 @@
       "item": [
         {
           "name": "Create analyte",
-          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"pH\",\n  \"test_type_id\": \"{{testTypeId}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/analytes", "host": ["{{baseUrl}}"], "path": ["analytes"] } },
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"pH\",\n  \"testTypeId\": \"{{testTypeId}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/analytes", "host": ["{{baseUrl}}"], "path": ["analytes"] } },
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 201\", function () {", "    pm.response.to.have.status(201);", "});", "const response = pm.response.json();", "if (response.id) pm.collectionVariables.set(\"analyteId\", response.id);"] } }]
         },
         {
@@ -150,7 +150,7 @@
         },
         {
           "name": "Update analyte by ID",
-          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"pH updated\",\n  \"test_type_id\": \"{{testTypeId}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/analytes/{{analyteId}}", "host": ["{{baseUrl}}"], "path": ["analytes", "{{analyteId}}"] } }
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"pH updated\",\n  \"testTypeId\": \"{{testTypeId}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/analytes/{{analyteId}}", "host": ["{{baseUrl}}"], "path": ["analytes", "{{analyteId}}"] } }
         },
         {
           "name": "Get analytes",

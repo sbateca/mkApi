@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from application.dto.request.create_client_request_dto import ClientRequestDto
 from application.dto.request.validators.common_validators import validate_uuid
@@ -6,7 +6,9 @@ from application.util.constants import ClientRequestError
 
 
 class UpdateClientRequestDto(BaseModel):
-    client_id: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    client_id: str = Field(alias="clientId")
     client: ClientRequestDto
 
     @field_validator("client_id")
