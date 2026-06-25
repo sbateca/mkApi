@@ -3,10 +3,8 @@ from pydantic import BaseModel, field_validator
 from application.dto.request.create_sample_type_request_dto import (
     SampleTypeRequestDto,
 )
-from application.dto.request.validators.sample_type_validators import (
-    validate_sample_type_id,
-)
-from domain.util.str_functions import capitalize_str
+from application.dto.request.validators.common_validators import validate_uuid
+from application.util.constants import SampleTypeRequestError
 
 
 class UpdateSampleTypeRequestDto(BaseModel):
@@ -16,5 +14,8 @@ class UpdateSampleTypeRequestDto(BaseModel):
     @field_validator("sample_type_id")
     @classmethod
     def validate_id(cls, value: str) -> str:
-        capitalized_name = capitalize_str(value)
-        return validate_sample_type_id(capitalized_name)
+        return validate_uuid(
+            value,
+            SampleTypeRequestError.BLANK_SAMPLE_TYPE_ID,
+            SampleTypeRequestError.INVALID_SAMPLE_TYPE_ID,
+        )

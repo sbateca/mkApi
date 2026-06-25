@@ -1,9 +1,8 @@
 from pydantic import BaseModel, field_validator
 
 from application.dto.request.create_test_type_request_dto import TestTypeRequestDto
-from application.dto.request.validators.test_type_validators import (
-    validate_test_type_id,
-)
+from application.dto.request.validators.common_validators import validate_uuid
+from application.util.constants import TestTypeRequestError
 
 
 class UpdateTestTypeRequestDto(BaseModel):
@@ -13,4 +12,8 @@ class UpdateTestTypeRequestDto(BaseModel):
     @field_validator("test_type_id")
     @classmethod
     def validate_id(cls, value: str) -> str:
-        return validate_test_type_id(value)
+        return validate_uuid(
+            value,
+            TestTypeRequestError.BLANK_TEST_TYPE_ID,
+            TestTypeRequestError.INVALID_TEST_TYPE_ID,
+        )
