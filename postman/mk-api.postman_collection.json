@@ -1,0 +1,242 @@
+{
+  "info": {
+    "_postman_id": "8ec89509-a249-40ff-93c5-46f15249f4a8",
+    "name": "MK-Api",
+    "description": "Postman collection for MK-Api CRUD endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "Create client",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Maximum Hotel\",\n  \"email\": \"hotel@example.com\",\n  \"phone\": \"5551234\",\n  \"nit\": \"123456\",\n  \"address\": \"Main street\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/clients", "host": ["{{baseUrl}}"], "path": ["clients"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 201\", function () {", "    pm.response.to.have.status(201);", "});", "const response = pm.response.json();", "if (response.id) pm.collectionVariables.set(\"clientId\", response.id);"] } }]
+        },
+        {
+          "name": "Get client by ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/clients/{{clientId}}", "host": ["{{baseUrl}}"], "path": ["clients", "{{clientId}}"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 200\", function () {", "    pm.response.to.have.status(200);", "});"] } }]
+        },
+        {
+          "name": "Delete client by ID",
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/clients/{{clientId}}", "host": ["{{baseUrl}}"], "path": ["clients", "{{clientId}}"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 204\", function () {", "    pm.response.to.have.status(204);", "});"] } }]
+        },
+        {
+          "name": "Update client by ID",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Maximum Hotel Updated\",\n  \"email\": \"hotel.updated@example.com\",\n  \"phone\": \"5559876\",\n  \"nit\": \"123456\",\n  \"address\": \"Main street 123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/clients/{{clientId}}", "host": ["{{baseUrl}}"], "path": ["clients", "{{clientId}}"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 200\", function () {", "    pm.response.to.have.status(200);", "});"] } }]
+        },
+        {
+          "name": "Get clients",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/clients", "host": ["{{baseUrl}}"], "path": ["clients"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 200\", function () {", "    pm.response.to.have.status(200);", "});"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Analysis methods",
+      "item": [
+        {
+          "name": "Create analysis method",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"NTC\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/analysis-methods", "host": ["{{baseUrl}}"], "path": ["analysis-methods"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 201\", function () {", "    pm.response.to.have.status(201);", "});", "const response = pm.response.json();", "if (response.id) pm.collectionVariables.set(\"analysisMethodId\", response.id);"] } }]
+        },
+        {
+          "name": "Get analysis method by ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/analysis-methods/{{analysisMethodId}}", "host": ["{{baseUrl}}"], "path": ["analysis-methods", "{{analysisMethodId}}"] } }
+        },
+        {
+          "name": "Delete analysis method by ID",
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/analysis-methods/{{analysisMethodId}}", "host": ["{{baseUrl}}"], "path": ["analysis-methods", "{{analysisMethodId}}"] } }
+        },
+        {
+          "name": "Update analysis method by ID",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"NTC updated\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/analysis-methods/{{analysisMethodId}}", "host": ["{{baseUrl}}"], "path": ["analysis-methods", "{{analysisMethodId}}"] } }
+        },
+        {
+          "name": "Get analysis methods",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/analysis-methods", "host": ["{{baseUrl}}"], "path": ["analysis-methods"] } }
+        }
+      ]
+    },
+    {
+      "name": "Test types",
+      "item": [
+        {
+          "name": "Create test type",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Physical-Chemical\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/test-types", "host": ["{{baseUrl}}"], "path": ["test-types"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 201\", function () {", "    pm.response.to.have.status(201);", "});", "const response = pm.response.json();", "if (response.id) pm.collectionVariables.set(\"testTypeId\", response.id);"] } }]
+        },
+        {
+          "name": "Get test type by ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/test-types/{{testTypeId}}", "host": ["{{baseUrl}}"], "path": ["test-types", "{{testTypeId}}"] } }
+        },
+        {
+          "name": "Delete test type by ID",
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/test-types/{{testTypeId}}", "host": ["{{baseUrl}}"], "path": ["test-types", "{{testTypeId}}"] } }
+        },
+        {
+          "name": "Update test type by ID",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Physical-Chemical updated\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/test-types/{{testTypeId}}", "host": ["{{baseUrl}}"], "path": ["test-types", "{{testTypeId}}"] } }
+        },
+        {
+          "name": "Get test types",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/test-types", "host": ["{{baseUrl}}"], "path": ["test-types"] } }
+        }
+      ]
+    },
+    {
+      "name": "Sample types",
+      "item": [
+        {
+          "name": "Create sample type",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Bottled water\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/sample-types", "host": ["{{baseUrl}}"], "path": ["sample-types"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 201\", function () {", "    pm.response.to.have.status(201);", "});", "const response = pm.response.json();", "if (response.id) pm.collectionVariables.set(\"sampleTypeId\", response.id);"] } }]
+        },
+        {
+          "name": "Get sample type by ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/sample-types/{{sampleTypeId}}", "host": ["{{baseUrl}}"], "path": ["sample-types", "{{sampleTypeId}}"] } }
+        },
+        {
+          "name": "Delete sample type by ID",
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/sample-types/{{sampleTypeId}}", "host": ["{{baseUrl}}"], "path": ["sample-types", "{{sampleTypeId}}"] } }
+        },
+        {
+          "name": "Update sample type by ID",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Bottled water updated\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/sample-types/{{sampleTypeId}}", "host": ["{{baseUrl}}"], "path": ["sample-types", "{{sampleTypeId}}"] } }
+        },
+        {
+          "name": "Get sample types",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/sample-types", "host": ["{{baseUrl}}"], "path": ["sample-types"] } }
+        }
+      ]
+    },
+    {
+      "name": "Analyte",
+      "item": [
+        {
+          "name": "Create analyte",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"pH\",\n  \"test_type_id\": \"{{testTypeId}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/analytes", "host": ["{{baseUrl}}"], "path": ["analytes"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 201\", function () {", "    pm.response.to.have.status(201);", "});", "const response = pm.response.json();", "if (response.id) pm.collectionVariables.set(\"analyteId\", response.id);"] } }]
+        },
+        {
+          "name": "Get Analyte by ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/analytes/{{analyteId}}", "host": ["{{baseUrl}}"], "path": ["analytes", "{{analyteId}}"] } }
+        },
+        {
+          "name": "Delete analyte by ID",
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/analytes/{{analyteId}}", "host": ["{{baseUrl}}"], "path": ["analytes", "{{analyteId}}"] } }
+        },
+        {
+          "name": "Update analyte by ID",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"pH updated\",\n  \"test_type_id\": \"{{testTypeId}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/analytes/{{analyteId}}", "host": ["{{baseUrl}}"], "path": ["analytes", "{{analyteId}}"] } }
+        },
+        {
+          "name": "Get analytes",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/analytes", "host": ["{{baseUrl}}"], "path": ["analytes"] } }
+        }
+      ]
+    },
+    {
+      "name": "Criterias",
+      "item": [
+        {
+          "name": "Create criteria",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"0 UFC/100 ml\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/criteria", "host": ["{{baseUrl}}"], "path": ["criteria"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 201\", function () {", "    pm.response.to.have.status(201);", "});", "const response = pm.response.json();", "if (response.id) pm.collectionVariables.set(\"criteriaId\", response.id);"] } }]
+        },
+        {
+          "name": "Get criteria by ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/criteria/{{criteriaId}}", "host": ["{{baseUrl}}"], "path": ["criteria", "{{criteriaId}}"] } }
+        },
+        {
+          "name": "Delete criteria by ID",
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/criteria/{{criteriaId}}", "host": ["{{baseUrl}}"], "path": ["criteria", "{{criteriaId}}"] } }
+        },
+        {
+          "name": "Update criteria by ID",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"1 UFC/100 ml\"\n}", "options": { "raw": { "language": "json" } } }, "url": { "raw": "{{baseUrl}}/criteria/{{criteriaId}}", "host": ["{{baseUrl}}"], "path": ["criteria", "{{criteriaId}}"] } }
+        },
+        {
+          "name": "Get criterias",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/criteria", "host": ["{{baseUrl}}"], "path": ["criteria"] } }
+        }
+      ]
+    },
+    {
+      "name": "Samples",
+      "item": [
+        {
+          "name": "Create sample",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sampleCode\": \"1001\",\n  \"sampleTypeId\": \"{{sampleTypeId}}\",\n  \"clientId\": \"{{clientId}}\",\n  \"getSampleDate\": \"2024-07-02\",\n  \"receptionDate\": \"2023-10-01\",\n  \"analysisDate\": \"2023-10-02\",\n  \"sampleLocation\": \"Hotel's restaurant\",\n  \"responsable\": \"John Lenon\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/samples", "host": ["{{baseUrl}}"], "path": ["samples"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status code is 201\", function () {", "    pm.response.to.have.status(201);", "});", "const response = pm.response.json();", "if (response.id) pm.collectionVariables.set(\"sampleId\", response.id);"] } }]
+        },
+        {
+          "name": "Get sample by ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/samples/{{sampleId}}", "host": ["{{baseUrl}}"], "path": ["samples", "{{sampleId}}"] } }
+        },
+        {
+          "name": "Delete sample by ID",
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/samples/{{sampleId}}", "host": ["{{baseUrl}}"], "path": ["samples", "{{sampleId}}"] } }
+        },
+        {
+          "name": "Update sample by ID",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sampleCode\": \"1001-updated\",\n  \"sampleTypeId\": \"{{sampleTypeId}}\",\n  \"clientId\": \"{{clientId}}\",\n  \"getSampleDate\": \"2024-07-02\",\n  \"receptionDate\": \"2023-10-01\",\n  \"analysisDate\": \"2023-10-02\",\n  \"sampleLocation\": \"Hotel's laboratory\",\n  \"responsable\": \"John Lenon\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/samples/{{sampleId}}", "host": ["{{baseUrl}}"], "path": ["samples", "{{sampleId}}"] }
+          }
+        },
+        {
+          "name": "Get samples",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/samples", "host": ["{{baseUrl}}"], "path": ["samples"] } }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "clientId", "value": "b078281c-ccee-4f44-a4f4-a05745aa70f3" },
+    { "key": "analysisMethodId", "value": "c461270c-6682-4f51-9148-efb9fbaab44e" },
+    { "key": "testTypeId", "value": "f03c6e5a-30e0-4cad-9cd4-e18ae306254e" },
+    { "key": "sampleTypeId", "value": "d52f2988-24a1-4e61-976a-cffe1838025b" },
+    { "key": "analyteId", "value": "7dc56aee-5530-4df9-896f-c63d8d39f28e" },
+    { "key": "criteriaId", "value": "b3b3b3b3-b3b3-b3b3-b3b3-b3b3b3b3b3b3" },
+    { "key": "sampleId", "value": "7c4972a5-ace8-434e-99cf-f61f21912e4a" }
+  ]
+}
