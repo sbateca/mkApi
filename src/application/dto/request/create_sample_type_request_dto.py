@@ -1,8 +1,9 @@
 from pydantic import BaseModel, Field, field_validator
 
-from application.dto.request.validators.sample_type_validators import (
-    validate_sample_type_name,
+from application.dto.request.validators.common_validators import (
+    validate_not_blank_value,
 )
+from application.util.constants import SampleTypeRequestError
 from domain.util.str_functions import capitalize_str
 
 
@@ -13,4 +14,7 @@ class SampleTypeRequestDto(BaseModel):
     @classmethod
     def validate_name(cls, value: str) -> str:
         capitalized_name = capitalize_str(value)
-        return validate_sample_type_name(capitalized_name)
+        return validate_not_blank_value(
+            capitalized_name,
+            SampleTypeRequestError.BLANK_NAME,
+        )

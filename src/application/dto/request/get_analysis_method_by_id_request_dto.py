@@ -1,8 +1,7 @@
 from pydantic import BaseModel, field_validator
 
-from application.dto.request.validators.analysis_method_validators import (
-    validate_analysis_method_id,
-)
+from application.dto.request.validators.common_validators import validate_uuid
+from application.util.constants import AnalysisMethodRequestError
 
 
 class GetAnalysisMethodByIdRequestDto(BaseModel):
@@ -11,4 +10,8 @@ class GetAnalysisMethodByIdRequestDto(BaseModel):
     @field_validator("analysis_method_id")
     @classmethod
     def validate_id(cls, value: str) -> str:
-        return validate_analysis_method_id(value)
+        return validate_uuid(
+            value,
+            AnalysisMethodRequestError.BLANK_ANALYSIS_METHOD_ID,
+            AnalysisMethodRequestError.INVALID_ANALYSIS_METHOD_ID,
+        )

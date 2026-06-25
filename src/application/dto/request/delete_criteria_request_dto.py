@@ -1,6 +1,7 @@
 from pydantic import BaseModel, field_validator
 
-from application.dto.request.validators.criteria_validators import validate_criteria_id
+from application.dto.request.validators.common_validators import validate_uuid
+from application.util.constants import CriteriaRequestError
 
 
 class DeleteCriteriaRequestDto(BaseModel):
@@ -9,4 +10,8 @@ class DeleteCriteriaRequestDto(BaseModel):
     @field_validator("criteria_id")
     @classmethod
     def validate_id(cls, value: str) -> str:
-        return validate_criteria_id(value)
+        return validate_uuid(
+            value,
+            CriteriaRequestError.BLANK_CRITERIA_ID,
+            CriteriaRequestError.INVALID_CRITERIA_ID,
+        )

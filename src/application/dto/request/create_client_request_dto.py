@@ -1,6 +1,9 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from application.dto.request.validators.client_validators import validate_not_blank
+from application.dto.request.validators.common_validators import (
+    validate_not_blank_value,
+)
+from application.util.constants import ClientRequestError
 from domain.util.str_functions import capitalize_str
 
 
@@ -14,10 +17,10 @@ class ClientRequestDto(BaseModel):
     @field_validator("phone", "nit", "address")
     @classmethod
     def validate_not_blank_field(cls, value: str) -> str:
-        return validate_not_blank(value)
+        return validate_not_blank_value(value, ClientRequestError.BLANK_FIELD)
 
     @field_validator("name", mode="before")
     @classmethod
     def normalize_email(cls, value: str) -> str:
-        value = validate_not_blank(value)
+        value = validate_not_blank_value(value, ClientRequestError.BLANK_FIELD)
         return capitalize_str(value)

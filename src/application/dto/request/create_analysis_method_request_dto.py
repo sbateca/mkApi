@@ -1,8 +1,9 @@
 from pydantic import BaseModel, Field, field_validator
 
-from application.dto.request.validators.analysis_method_validators import (
-    validate_analysis_method_name,
+from application.dto.request.validators.common_validators import (
+    validate_not_blank_value,
 )
+from application.util.constants import AnalysisMethodRequestError
 from domain.util.str_functions import capitalize_str
 
 
@@ -13,4 +14,7 @@ class AnalysisMethodRequestDto(BaseModel):
     @classmethod
     def validate_name(cls, value: str) -> str:
         capitalized_name = capitalize_str(value)
-        return validate_analysis_method_name(capitalized_name)
+        return validate_not_blank_value(
+            capitalized_name,
+            AnalysisMethodRequestError.BLANK_NAME,
+        )

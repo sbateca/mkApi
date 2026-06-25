@@ -1,8 +1,7 @@
 from pydantic import BaseModel, field_validator
 
-from application.dto.request.validators.sample_type_validators import (
-    validate_sample_type_id,
-)
+from application.dto.request.validators.common_validators import validate_uuid
+from application.util.constants import SampleTypeRequestError
 
 
 class GetSampleTypeByIdRequestDto(BaseModel):
@@ -11,4 +10,8 @@ class GetSampleTypeByIdRequestDto(BaseModel):
     @field_validator("sample_type_id")
     @classmethod
     def validate_id(cls, value: str) -> str:
-        return validate_sample_type_id(value)
+        return validate_uuid(
+            value,
+            SampleTypeRequestError.BLANK_SAMPLE_TYPE_ID,
+            SampleTypeRequestError.INVALID_SAMPLE_TYPE_ID,
+        )

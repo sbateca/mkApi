@@ -21,6 +21,10 @@ from domain.exception.criteria_exception import (
     CriteriaNotFoundError,
 )
 from domain.exception.domain_exception import DomainError
+from domain.exception.sample_exception import (
+    SampleAlreadyExistsError,
+    SampleNotFoundError,
+)
 from domain.exception.sample_type_exception import (
     SampleTypeAlreadyExistsError,
     SampleTypeNotFoundError,
@@ -47,12 +51,15 @@ from infrastructure.input.rest.exception.exception_handler import (
     criteria_not_found_exception_handler,
     domain_exception_handler,
     request_validation_exception_handler,
+    sample_already_exists_exception_handler,
+    sample_not_found_exception_handler,
     sample_type_already_exists_exception_handler,
     sample_type_not_found_exception_handler,
     test_type_already_exists_exception_handler,
     test_type_not_found_exception_handler,
     unexpected_exception_handler,
 )
+from infrastructure.input.rest.sample_controller import router as sample_router
 from infrastructure.input.rest.sample_type_controller import (
     router as sample_type_router,
 )
@@ -69,6 +76,7 @@ app.include_router(test_type_router)
 app.include_router(analyte_router)
 app.include_router(sample_type_router)
 app.include_router(criteria_router)
+app.include_router(sample_router)
 
 app.add_exception_handler(
     RequestValidationError,
@@ -119,6 +127,14 @@ app.add_exception_handler(
 app.add_exception_handler(
     CriteriaNotFoundError,
     criteria_not_found_exception_handler,
+)
+app.add_exception_handler(
+    SampleAlreadyExistsError,
+    sample_already_exists_exception_handler,
+)
+app.add_exception_handler(
+    SampleNotFoundError,
+    sample_not_found_exception_handler,
 )
 app.add_exception_handler(DomainError, domain_exception_handler)
 app.add_exception_handler(Exception, unexpected_exception_handler)
