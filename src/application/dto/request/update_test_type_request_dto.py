@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from application.dto.request.create_test_type_request_dto import TestTypeRequestDto
 from application.dto.request.validators.common_validators import validate_uuid
@@ -6,8 +6,10 @@ from application.util.constants import TestTypeRequestError
 
 
 class UpdateTestTypeRequestDto(BaseModel):
-    test_type_id: str
-    test_type: TestTypeRequestDto
+    model_config = ConfigDict(populate_by_name=True)
+
+    test_type_id: str = Field(alias="testTypeId")
+    test_type: TestTypeRequestDto = Field(alias="testType")
 
     @field_validator("test_type_id")
     @classmethod

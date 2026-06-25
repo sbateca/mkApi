@@ -1,11 +1,13 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from application.dto.request.validators.common_validators import validate_uuid
 from application.util.constants import TestTypeRequestError
 
 
 class DeleteTestTypeRequestDto(BaseModel):
-    test_type_id: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    test_type_id: str = Field(alias="testTypeId")
 
     @field_validator("test_type_id")
     @classmethod

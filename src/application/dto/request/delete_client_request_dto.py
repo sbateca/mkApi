@@ -1,11 +1,13 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from application.dto.request.validators.common_validators import validate_uuid
 from application.util.constants import ClientRequestError
 
 
 class DeleteClientRequestDto(BaseModel):
-    client_id: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    client_id: str = Field(alias="clientId")
 
     @field_validator("client_id")
     @classmethod

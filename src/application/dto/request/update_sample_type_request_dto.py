@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from application.dto.request.create_sample_type_request_dto import (
     SampleTypeRequestDto,
@@ -8,8 +8,10 @@ from application.util.constants import SampleTypeRequestError
 
 
 class UpdateSampleTypeRequestDto(BaseModel):
-    sample_type_id: str
-    sample_type: SampleTypeRequestDto
+    model_config = ConfigDict(populate_by_name=True)
+
+    sample_type_id: str = Field(alias="sampleTypeId")
+    sample_type: SampleTypeRequestDto = Field(alias="sampleType")
 
     @field_validator("sample_type_id")
     @classmethod
