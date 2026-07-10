@@ -9,6 +9,9 @@ ANALYSIS_METHOD_NOT_FOUND_ERROR_MESSAGE = "The analysis method was not found."
 
 TEST_TYPE_ALREADY_EXISTS_ERROR_MESSAGE = "The test type already exists."
 TEST_TYPE_NOT_FOUND_ERROR_MESSAGE = "The test type was not found."
+TEST_TYPE_CONSISTENCY_ERROR_MESSAGE = (
+    "Test type inconsistency between test and analyte."
+)
 
 ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE = "The analyte already exists."
 ANALYTE_NOT_FOUND_ERROR_MESSAGE = "The analyte was not found."
@@ -21,3 +24,5 @@ CRITERIA_NOT_FOUND_ERROR_MESSAGE = "The criteria was not found."
 
 SAMPLE_ALREADY_EXISTS_ERROR_MESSAGE = "The sample already exists."
 SAMPLE_NOT_FOUND_ERROR_MESSAGE = "The sample was not found."
+
+TEST_NOT_FOUND_ERROR_MESSAGE = "The test was not found."

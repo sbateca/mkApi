@@ -36,6 +36,10 @@ class SampleErrorType(Enum):
     SAMPLE_NOT_FOUND = "SAMPLE_NOT_FOUND"
 
 
+class TestErrorType(Enum):
+    TEST_NOT_FOUND = "TEST_NOT_FOUND"
+
+
 class DomainErrorType(Enum):
     DOMAIN_ERROR = "DOMAIN_ERROR"
 

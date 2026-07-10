@@ -31,6 +31,7 @@ from domain.exception.sample_type_exception import (
     SampleTypeAlreadyExistsError,
     SampleTypeNotFoundError,
 )
+from domain.exception.test_exception import TestNotFoundError
 from domain.exception.test_type_exception import (
     TestTypeAlreadyExistsError,
     TestTypeNotFoundError,
@@ -54,6 +55,7 @@ from infrastructure.util.constants import (
     DomainErrorType,
     SampleErrorType,
     SampleTypeErrorType,
+    TestErrorType,
     TestTypeErrorType,
     UnexpectedErrorType,
 )
@@ -78,6 +80,18 @@ async def sample_not_found_exception_handler(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
             "type": SampleErrorType.SAMPLE_NOT_FOUND.value,
+            "message": str(exception),
+        },
+    )
+
+
+async def test_not_found_exception_handler(
+    request: Request, exception: TestNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            "type": TestErrorType.TEST_NOT_FOUND.value,
             "message": str(exception),
         },
     )

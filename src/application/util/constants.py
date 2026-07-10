@@ -50,5 +50,21 @@ class SampleRequestError(Enum):
     BLANK_FIELD = "Field cannot be blank"
 
 
+class TestRequestError(Enum):
+    BLANK_TEST_ID = "Test ID cannot be blank"
+    INVALID_TEST_ID = "Test ID must be a valid UUID"
+    BLANK_TEST_TYPE_ID = "Test type ID cannot be blank"
+    INVALID_TEST_TYPE_ID = "Test type ID must be a valid UUID"
+    BLANK_SAMPLE_ID = "Sample ID cannot be blank"
+    INVALID_SAMPLE_ID = "Sample ID must be a valid UUID"
+    BLANK_ANALYTE_ID = "Analyte ID cannot be blank"
+    INVALID_ANALYTE_ID = "Analyte ID must be a valid UUID"
+    BLANK_ANALYSIS_METHOD_ID = "Analysis method ID cannot be blank"
+    INVALID_ANALYSIS_METHOD_ID = "Analysis method ID must be a valid UUID"
+    BLANK_CRITERIA_ID = "Criteria ID cannot be blank"
+    INVALID_CRITERIA_ID = "Criteria ID must be a valid UUID"
+    BLANK_RESULT = "Result cannot be blank"
+
+
 REQUEST_VALIDATION_FAILED_TEXT_MESSAGE = "Request validation failed"
 VALID_CLIENT_ID_REGEX = r"^[A-Za-z0-9_-]+$"
