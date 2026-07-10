@@ -8,6 +8,7 @@ from .sample_response_dto import (
     SampleTypeSummaryResponseDto,
 )
 from .sample_type_response_dto import SampleTypeResponseDto
+from .test_response_dto import TestResponseDto
 from .test_type_response_dto import TestTypeResponseDto
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "SampleResponseDto",
     "SampleTypeSummaryResponseDto",
     "SampleTypeResponseDto",
+    "TestResponseDto",
     "TestTypeResponseDto",
 ]

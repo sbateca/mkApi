@@ -15,9 +15,11 @@ from application.handler.impl.client_handler import ClientHandler
 from application.handler.impl.criteria_handler import CriteriaHandler
 from application.handler.impl.sample_handler import SampleHandler
 from application.handler.impl.sample_type_handler import SampleTypeHandler
+from application.handler.impl.test_handler import TestHandler
 from application.handler.impl.test_type_handler import TestTypeHandler
 from application.handler.sample_handler_interface import SampleHandlerInterface
 from application.handler.sample_type_handler_interface import SampleTypeHandlerInterface
+from application.handler.test_handler_interface import TestHandlerInterface
 from application.handler.test_type_handler_interface import TestTypeHandlerInterface
 from application.mapper.analysis_method_mapper import AnalysisMethodMapper
 from application.mapper.analyte_mapper import AnalyteMapper
@@ -25,6 +27,7 @@ from application.mapper.client_mapper import ClientMapper
 from application.mapper.criteria_mapper import CriteriaMapper
 from application.mapper.sample_mapper import SampleMapper
 from application.mapper.sample_type_mapper import SampleTypeMapper
+from application.mapper.test_mapper import TestMapper
 from application.mapper.test_type_mapper import TestTypeMapper
 from domain.api.analysis_method_service_port import AnalysisMethodServicePort
 from domain.api.analyte_service_port import AnalyteServicePort
@@ -32,6 +35,7 @@ from domain.api.client_service_port import ClientServicePort
 from domain.api.criteria_service_port import CriteriaServicePort
 from domain.api.sample_service_port import SampleServicePort
 from domain.api.sample_type_service_port import SampleTypeServicePort
+from domain.api.test_service_port import TestServicePort
 from domain.api.test_type_service_port import TestTypeServicePort
 from domain.spi.analysis_method_persistence_port import AnalysisMethodPersistencePort
 from domain.spi.analyte_persistence_port import AnalytePersistencePort
@@ -39,6 +43,7 @@ from domain.spi.client_persistence_port import ClientPersistencePort
 from domain.spi.criteria_persistence_port import CriteriaPersistencePort
 from domain.spi.sample_persistence_port import SamplePersistencePort
 from domain.spi.sample_type_persistence_port import SampleTypePersistencePort
+from domain.spi.test_persistence_port import TestPersistencePort
 from domain.spi.test_type_persistence_port import TestTypePersistencePort
 from domain.usecase.analysis_method_use_case import AnalysisMethodUseCase
 from domain.usecase.analyte_use_case import AnalyteUseCase
@@ -47,6 +52,7 @@ from domain.usecase.criteria_use_case import CriteriaUseCase
 from domain.usecase.sample_type_use_case import SampleTypeUseCase
 from domain.usecase.sample_use_case import SampleUseCase
 from domain.usecase.test_type_use_case import TestTypeUseCase
+from domain.usecase.test_use_case import TestUseCase
 from infrastructure.output.observability.logger_adapter import (
     LoggerAdapter,
 )
@@ -67,6 +73,9 @@ from infrastructure.output.postgresql.adapter.sample_persistence_adapter import 
 )
 from infrastructure.output.postgresql.adapter.sample_type_persistence_adapter import (
     SampleTypePersistenceAdapter,
+)
+from infrastructure.output.postgresql.adapter.test_persistence_adapter import (
+    TestPersistenceAdapter,
 )
 from infrastructure.output.postgresql.adapter.test_type_persistence_adapter import (
     TestTypePersistenceAdapter,
@@ -90,6 +99,9 @@ from infrastructure.output.postgresql.mapper.sample_entity_mapper import (
 from infrastructure.output.postgresql.mapper.sample_type_entity_mapper import (
     SampleTypeEntityMapper,
 )
+from infrastructure.output.postgresql.mapper.test_entity_mapper import (
+    TestEntityMapper,
+)
 from infrastructure.output.postgresql.mapper.test_type_entity_mapper import (
     TestTypeEntityMapper,
 )
@@ -110,6 +122,9 @@ from infrastructure.output.postgresql.repository.sample_repository import (
 )
 from infrastructure.output.postgresql.repository.sample_type_repository import (
     SampleTypePostgreSQLRepository,
+)
+from infrastructure.output.postgresql.repository.test_repository import (
+    TestPostgreSQLRepository,
 )
 from infrastructure.output.postgresql.repository.test_type_repository import (
     TestTypePostgreSQLRepository,
@@ -439,3 +454,81 @@ def get_sample_handler(
     service: Annotated[SampleServicePort, Depends(get_sample_usecase)],
 ) -> SampleHandlerInterface:
     return SampleHandler(mapper, service)
+
+
+def get_test_mapper() -> TestMapper:
+    return TestMapper()
+
+
+def get_test_entity_mapper(
+    test_type_entity_mapper: Annotated[
+        TestTypeEntityMapper, Depends(get_test_type_entity_mapper)
+    ],
+    analyte_entity_mapper: Annotated[
+        AnalyteEntityMapper, Depends(get_analyte_entity_mapper)
+    ],
+    analysis_method_entity_mapper: Annotated[
+        AnalysisMethodEntityMapper, Depends(get_analysis_method_entity_mapper)
+    ],
+    criteria_entity_mapper: Annotated[
+        CriteriaEntityMapper, Depends(get_criteria_entity_mapper)
+    ],
+) -> TestEntityMapper:
+    return TestEntityMapper(
+        test_type_entity_mapper,
+        analyte_entity_mapper,
+        analysis_method_entity_mapper,
+        criteria_entity_mapper,
+    )
+
+
+def get_test_repository(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> TestPostgreSQLRepository:
+    return TestPostgreSQLRepository(session)
+
+
+def get_test_persistence_adapter(
+    repository: Annotated[TestPostgreSQLRepository, Depends(get_test_repository)],
+    entity_mapper: Annotated[TestEntityMapper, Depends(get_test_entity_mapper)],
+) -> TestPersistencePort:
+    return TestPersistenceAdapter(repository, entity_mapper)
+
+
+def get_test_usecase(
+    test_persistence_port: Annotated[
+        TestPersistencePort, Depends(get_test_persistence_adapter)
+    ],
+    test_type_persistence_port: Annotated[
+        TestTypePersistencePort, Depends(get_test_type_persistence_adapter)
+    ],
+    sample_persistence_port: Annotated[
+        SamplePersistencePort, Depends(get_sample_persistence_adapter)
+    ],
+    analyte_persistence_port: Annotated[
+        AnalytePersistencePort, Depends(get_analyte_persistence_adapter)
+    ],
+    analysis_method_persistence_port: Annotated[
+        AnalysisMethodPersistencePort,
+        Depends(get_analysis_method_persistence_adapter),
+    ],
+    criteria_persistence_port: Annotated[
+        CriteriaPersistencePort, Depends(get_criteria_persistence_adapter)
+    ],
+) -> TestServicePort:
+    return TestUseCase(
+        test_persistence_port,
+        test_type_persistence_port,
+        sample_persistence_port,
+        analyte_persistence_port,
+        analysis_method_persistence_port,
+        criteria_persistence_port,
+        LoggerAdapter("mkapi.test"),
+    )
+
+
+def get_test_handler(
+    mapper: Annotated[TestMapper, Depends(get_test_mapper)],
+    service: Annotated[TestServicePort, Depends(get_test_usecase)],
+) -> TestHandlerInterface:
+    return TestHandler(mapper, service)
