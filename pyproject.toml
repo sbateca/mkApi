@@ -19,7 +19,8 @@ dependencies = [
     "opentelemetry-exporter-otlp (>=1.42.1,<2.0.0)",
     "opentelemetry-instrumentation-fastapi (>=0.63b1,<0.64)",
     "opentelemetry-instrumentation-sqlalchemy (>=0.63b1,<0.64)",
-    "opentelemetry-instrumentation-logging (>=0.63b1,<0.64)"
+    "opentelemetry-instrumentation-logging (>=0.63b1,<0.64)",
+    "bcrypt (>=4.3,<6.0)"
 ]
 
 

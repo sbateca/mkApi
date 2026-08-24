@@ -13,46 +13,59 @@ from application.handler.impl.analysis_method_handler import AnalysisMethodHandl
 from application.handler.impl.analyte_handler import AnalyteHandler
 from application.handler.impl.client_handler import ClientHandler
 from application.handler.impl.criteria_handler import CriteriaHandler
+from application.handler.impl.role_handler import RoleHandler
 from application.handler.impl.sample_handler import SampleHandler
 from application.handler.impl.sample_type_handler import SampleTypeHandler
 from application.handler.impl.test_handler import TestHandler
 from application.handler.impl.test_type_handler import TestTypeHandler
+from application.handler.impl.user_handler import UserHandler
+from application.handler.role_handler_interface import RoleHandlerInterface
 from application.handler.sample_handler_interface import SampleHandlerInterface
 from application.handler.sample_type_handler_interface import SampleTypeHandlerInterface
 from application.handler.test_handler_interface import TestHandlerInterface
 from application.handler.test_type_handler_interface import TestTypeHandlerInterface
+from application.handler.user_handler_interface import UserHandlerInterface
 from application.mapper.analysis_method_mapper import AnalysisMethodMapper
 from application.mapper.analyte_mapper import AnalyteMapper
 from application.mapper.client_mapper import ClientMapper
 from application.mapper.criteria_mapper import CriteriaMapper
+from application.mapper.role_mapper import RoleMapper
 from application.mapper.sample_mapper import SampleMapper
 from application.mapper.sample_type_mapper import SampleTypeMapper
 from application.mapper.test_mapper import TestMapper
 from application.mapper.test_type_mapper import TestTypeMapper
+from application.mapper.user_mapper import UserMapper
 from domain.api.analysis_method_service_port import AnalysisMethodServicePort
 from domain.api.analyte_service_port import AnalyteServicePort
 from domain.api.client_service_port import ClientServicePort
 from domain.api.criteria_service_port import CriteriaServicePort
+from domain.api.role_service_port import RoleServicePort
 from domain.api.sample_service_port import SampleServicePort
 from domain.api.sample_type_service_port import SampleTypeServicePort
 from domain.api.test_service_port import TestServicePort
 from domain.api.test_type_service_port import TestTypeServicePort
+from domain.api.user_service_port import UserServicePort
 from domain.spi.analysis_method_persistence_port import AnalysisMethodPersistencePort
 from domain.spi.analyte_persistence_port import AnalytePersistencePort
 from domain.spi.client_persistence_port import ClientPersistencePort
 from domain.spi.criteria_persistence_port import CriteriaPersistencePort
+from domain.spi.password_hasher_port import PasswordHasherPort
+from domain.spi.role_persistence_port import RolePersistencePort
 from domain.spi.sample_persistence_port import SamplePersistencePort
 from domain.spi.sample_type_persistence_port import SampleTypePersistencePort
 from domain.spi.test_persistence_port import TestPersistencePort
 from domain.spi.test_type_persistence_port import TestTypePersistencePort
+from domain.spi.user_persistence_port import UserPersistencePort
 from domain.usecase.analysis_method_use_case import AnalysisMethodUseCase
 from domain.usecase.analyte_use_case import AnalyteUseCase
 from domain.usecase.client_use_case import ClientUseCase
 from domain.usecase.criteria_use_case import CriteriaUseCase
+from domain.usecase.role_usecase import RoleUseCase
 from domain.usecase.sample_type_use_case import SampleTypeUseCase
 from domain.usecase.sample_use_case import SampleUseCase
 from domain.usecase.test_type_use_case import TestTypeUseCase
 from domain.usecase.test_use_case import TestUseCase
+from domain.usecase.user_use_case import UserUseCase
 from infrastructure.output.observability.logger_adapter import (
     LoggerAdapter,
 )
@@ -68,6 +81,9 @@ from infrastructure.output.postgresql.adapter.client_persistence_adapter import 
 from infrastructure.output.postgresql.adapter.criteria_persistence_adapter import (
     CriteriaPersistenceAdapter,
 )
+from infrastructure.output.postgresql.adapter.role_persistence_adapter import (
+    RolePersistenceAdapter,
+)
 from infrastructure.output.postgresql.adapter.sample_persistence_adapter import (
     SamplePersistenceAdapter,
 )
@@ -79,6 +95,9 @@ from infrastructure.output.postgresql.adapter.test_persistence_adapter import (
 )
 from infrastructure.output.postgresql.adapter.test_type_persistence_adapter import (
     TestTypePersistenceAdapter,
+)
+from infrastructure.output.postgresql.adapter.user_persistence_adapter import (
+    UserPersistenceAdapter,
 )
 from infrastructure.output.postgresql.database.session import get_db_session
 from infrastructure.output.postgresql.mapper.analysis_method_entity_mapper import (
@@ -93,6 +112,7 @@ from infrastructure.output.postgresql.mapper.client_entity_mapper import (
 from infrastructure.output.postgresql.mapper.criteria_entity_mapper import (
     CriteriaEntityMapper,
 )
+from infrastructure.output.postgresql.mapper.role_entity_mapper import RoleEntityMapper
 from infrastructure.output.postgresql.mapper.sample_entity_mapper import (
     SampleEntityMapper,
 )
@@ -105,6 +125,7 @@ from infrastructure.output.postgresql.mapper.test_entity_mapper import (
 from infrastructure.output.postgresql.mapper.test_type_entity_mapper import (
     TestTypeEntityMapper,
 )
+from infrastructure.output.postgresql.mapper.user_entity_mapper import UserEntityMapper
 from infrastructure.output.postgresql.repository.analysis_method_repository import (
     AnalysisMethodPostgreSQLRepository,
 )
@@ -116,6 +137,9 @@ from infrastructure.output.postgresql.repository.client_repository import (
 )
 from infrastructure.output.postgresql.repository.criteria_repository import (
     CriteriaPostgreSQLRepository,
+)
+from infrastructure.output.postgresql.repository.role_repository import (
+    RolePostgreSQLRepository,
 )
 from infrastructure.output.postgresql.repository.sample_repository import (
     SamplePostgreSQLRepository,
@@ -129,10 +153,100 @@ from infrastructure.output.postgresql.repository.test_repository import (
 from infrastructure.output.postgresql.repository.test_type_repository import (
     TestTypePostgreSQLRepository,
 )
+from infrastructure.output.postgresql.repository.user_repository import (
+    UserPostgreSQLRepository,
+)
+from infrastructure.output.security.bcrypt_password_hasher import BcryptPasswordHasher
 
 
 def get_criteria_mapper() -> CriteriaMapper:
     return CriteriaMapper()
+
+
+def get_role_mapper() -> RoleMapper:
+    return RoleMapper()
+
+
+def get_role_entity_mapper() -> RoleEntityMapper:
+    return RoleEntityMapper()
+
+
+def get_role_repository(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> RolePostgreSQLRepository:
+    return RolePostgreSQLRepository(session)
+
+
+def get_role_persistence_adapter(
+    repository: Annotated[RolePostgreSQLRepository, Depends(get_role_repository)],
+    mapper: Annotated[RoleEntityMapper, Depends(get_role_entity_mapper)],
+) -> RolePersistencePort:
+    return RolePersistenceAdapter(repository, mapper)
+
+
+def get_role_usecase(
+    port: Annotated[RolePersistencePort, Depends(get_role_persistence_adapter)],
+) -> RoleServicePort:
+    return RoleUseCase(port, LoggerAdapter("mkapi.role"))
+
+
+def get_role_handler(
+    mapper: Annotated[RoleMapper, Depends(get_role_mapper)],
+    service: Annotated[RoleServicePort, Depends(get_role_usecase)],
+) -> RoleHandlerInterface:
+    return RoleHandler(mapper, service)
+
+
+def get_user_mapper() -> UserMapper:
+    return UserMapper()
+
+
+def get_user_entity_mapper(
+    role_mapper: Annotated[RoleEntityMapper, Depends(get_role_entity_mapper)],
+) -> UserEntityMapper:
+    return UserEntityMapper(role_mapper)
+
+
+def get_user_repository(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> UserPostgreSQLRepository:
+    return UserPostgreSQLRepository(session)
+
+
+def get_user_persistence_adapter(
+    repository: Annotated[UserPostgreSQLRepository, Depends(get_user_repository)],
+    mapper: Annotated[UserEntityMapper, Depends(get_user_entity_mapper)],
+    role_repository: Annotated[RolePostgreSQLRepository, Depends(get_role_repository)],
+) -> UserPersistencePort:
+    return UserPersistenceAdapter(repository, mapper, role_repository)
+
+
+def get_password_hasher() -> PasswordHasherPort:
+    return BcryptPasswordHasher()
+
+
+def get_user_usecase(
+    user_persistence_port: Annotated[
+        UserPersistencePort, Depends(get_user_persistence_adapter)
+    ],
+    role_persistence_port: Annotated[
+        RolePersistencePort, Depends(get_role_persistence_adapter)
+    ],
+    password_hasher: Annotated[PasswordHasherPort, Depends(get_password_hasher)],
+) -> UserServicePort:
+    return UserUseCase(
+        user_persistence_port,
+        role_persistence_port,
+        password_hasher,
+        LoggerAdapter("mkapi.user"),
+    )
+
+
+def get_user_handler(
+    mapper: Annotated[UserMapper, Depends(get_user_mapper)],
+    service: Annotated[UserServicePort, Depends(get_user_usecase)],
+) -> UserHandlerInterface:
+    return UserHandler(mapper, service)
 
 
 def get_criteria_entity_mapper() -> CriteriaEntityMapper:

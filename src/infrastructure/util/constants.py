@@ -40,6 +40,16 @@ class TestErrorType(Enum):
     TEST_NOT_FOUND = "TEST_NOT_FOUND"
 
 
+class UserErrorType(Enum):
+    USER_ALREADY_EXISTS = "USER_ALREADY_EXISTS"
+    USER_NOT_FOUND = "USER_NOT_FOUND"
+
+
+class RoleErrorType(Enum):
+    ROLE_ALREADY_EXISTS = "ROLE_ALREADY_EXISTS"
+    ROLE_NOT_FOUND = "ROLE_NOT_FOUND"
+
+
 class DomainErrorType(Enum):
     DOMAIN_ERROR = "DOMAIN_ERROR"
 

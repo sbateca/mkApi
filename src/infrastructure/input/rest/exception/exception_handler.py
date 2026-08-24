@@ -23,6 +23,7 @@ from domain.exception.criteria_exception import (
     CriteriaNotFoundError,
 )
 from domain.exception.domain_exception import DomainError
+from domain.exception.role_exception import RoleAlreadyExistsError, RoleNotFoundError
 from domain.exception.sample_exception import (
     SampleAlreadyExistsError,
     SampleNotFoundError,
@@ -36,6 +37,7 @@ from domain.exception.test_type_exception import (
     TestTypeAlreadyExistsError,
     TestTypeNotFoundError,
 )
+from domain.exception.user_exception import UserAlreadyExistsError, UserNotFoundError
 from domain.util.constants import (
     ANALYSIS_METHOD_ALREADY_EXISTS_ERROR_MESSAGE,
     ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE,
@@ -53,12 +55,56 @@ from infrastructure.util.constants import (
     ClientErrorType,
     CriteriaErrorType,
     DomainErrorType,
+    RoleErrorType,
     SampleErrorType,
     SampleTypeErrorType,
     TestErrorType,
     TestTypeErrorType,
     UnexpectedErrorType,
+    UserErrorType,
 )
+
+
+async def role_already_exists_exception_handler(
+    request: Request, exception: RoleAlreadyExistsError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            "type": RoleErrorType.ROLE_ALREADY_EXISTS.value,
+            "message": str(exception),
+        },
+    )
+
+
+async def role_not_found_exception_handler(
+    request: Request, exception: RoleNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={"type": RoleErrorType.ROLE_NOT_FOUND.value, "message": str(exception)},
+    )
+
+
+async def user_already_exists_exception_handler(
+    request: Request, exception: UserAlreadyExistsError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            "type": UserErrorType.USER_ALREADY_EXISTS.value,
+            "message": str(exception),
+        },
+    )
+
+
+async def user_not_found_exception_handler(
+    request: Request, exception: UserNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={"type": UserErrorType.USER_NOT_FOUND.value, "message": str(exception)},
+    )
 
 
 async def sample_already_exists_exception_handler(
