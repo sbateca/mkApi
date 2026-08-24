@@ -66,5 +66,15 @@ class TestRequestError(Enum):
     BLANK_RESULT = "Result cannot be blank"
 
 
+class UserRequestError(Enum):
+    BLANK_USER_ID = "User ID cannot be blank"
+    INVALID_USER_ID = "User ID must be a valid UUID"
+
+
+class RoleRequestError(Enum):
+    BLANK_ROLE_ID = "Role ID cannot be blank"
+    INVALID_ROLE_ID = "Role ID must be a valid UUID"
+
+
 REQUEST_VALIDATION_FAILED_TEXT_MESSAGE = "Request validation failed"
 VALID_CLIENT_ID_REGEX = r"^[A-Za-z0-9_-]+$"

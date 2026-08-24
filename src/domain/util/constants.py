@@ -1,3 +1,5 @@
+from enum import Enum
+
 DOMAIN_ERROR_MESSAGE = "A domain error occurred"
 UNEXPECTED_ERROR_MESSAGE = "An unexpected error occurred"
 
@@ -26,3 +28,16 @@ SAMPLE_ALREADY_EXISTS_ERROR_MESSAGE = "The sample already exists."
 SAMPLE_NOT_FOUND_ERROR_MESSAGE = "The sample was not found."
 
 TEST_NOT_FOUND_ERROR_MESSAGE = "The test was not found."
+
+ROLE_NOT_FOUND_ERROR_MESSAGE = "The role was not found."
+ROLE_ALREADY_EXISTS_ERROR_MESSAGE = "The role already exists."
+USER_NOT_FOUND_ERROR_MESSAGE = "The user was not found."
+USER_ALREADY_EXISTS_ERROR_MESSAGE = "The user already exists."
+
+
+class UserRole(Enum):
+    ADMIN = "Admin"
+    TECHNICAL_DIRECTOR = "Technical Director"
+    ANALYST = "Analyst"
+    RECEPTIONIST = "Receptionist"
+    CLIENT = "Client"

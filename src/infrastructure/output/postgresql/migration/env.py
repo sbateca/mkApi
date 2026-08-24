@@ -29,6 +29,7 @@ config.set_main_option(
 )
 
 target_metadata = Base.metadata
+print("ALEMBIC TABLES:", Base.metadata.tables.keys())
 
 
 def run_migrations_offline() -> None:
