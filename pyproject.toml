@@ -99,7 +99,10 @@ omit = [
     "src/**/util/**",
     "src/main.py",
     "src/application/dto/**",
+    "src/application/handler/*_interface.py",
+    "src/domain/api/**",
     "src/domain/model/**",
-    "src/spi/**",
+    "src/domain/spi/**",
     "src/infrastructure/configuration/**",
+    "src/infrastructure/output/postgresql/migration/**",
 ]
