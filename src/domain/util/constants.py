@@ -33,6 +33,9 @@ ROLE_NOT_FOUND_ERROR_MESSAGE = "The role was not found."
 ROLE_ALREADY_EXISTS_ERROR_MESSAGE = "The role already exists."
 USER_NOT_FOUND_ERROR_MESSAGE = "The user was not found."
 USER_ALREADY_EXISTS_ERROR_MESSAGE = "The user already exists."
+AUTHENTICATION_FAILED_ERROR_MESSAGE = (
+    "Authentication failed. Invalid username or password."
+)
 
 
 class UserRole(Enum):

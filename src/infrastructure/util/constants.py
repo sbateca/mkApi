@@ -56,3 +56,24 @@ class DomainErrorType(Enum):
 
 class UnexpectedErrorType(Enum):
     UNEXPECTED_ERROR = "UNEXPECTED_ERROR"
+
+
+class AuthenticationErrorType(Enum):
+    AUTHENTICATION_FAILED = "AUTHENTICATION_FAILED"
+    AUTHENTICATION_REQUIRED = "Authentication credentials are required"
+    INSUFFICIENT_PERMISSIONS = "Insufficient permissions"
+
+
+class TokenError(Enum):
+    EXPIRED = "Token has expired"
+    INVALID = "Invalid token"
+
+
+class TokenField(Enum):
+    SUB = "sub"
+    ROLES = "roles"
+    IAT = "iat"
+    EXP = "exp"
+
+
+ENCODE_TYPE = "utf-8"

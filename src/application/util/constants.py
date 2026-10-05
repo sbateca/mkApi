@@ -76,5 +76,9 @@ class RoleRequestError(Enum):
     INVALID_ROLE_ID = "Role ID must be a valid UUID"
 
 
+class LoginRequestError(Enum):
+    BLANK_USERNAME = "Username must not be blank"
+
+
 REQUEST_VALIDATION_FAILED_TEXT_MESSAGE = "Request validation failed"
 VALID_CLIENT_ID_REGEX = r"^[A-Za-z0-9_-]+$"

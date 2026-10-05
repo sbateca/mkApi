@@ -5,8 +5,8 @@ from domain.exception.user_exception import UserAlreadyExistsError, UserNotFound
 from domain.model.user import User
 from domain.spi.logger_port import LoggerPort, NullLogger
 from domain.spi.password_hasher_port import PasswordHasherPort
+from domain.spi.role_persistence_port import RolePersistencePort
 from domain.spi.user_persistence_port import UserPersistencePort
-from src.domain.spi.role_persistence_port import RolePersistencePort
 
 
 class UserUseCase(UserServicePort):

@@ -14,6 +14,7 @@ from domain.exception.analyte_exception import (
     AnalyteAlreadyExistsError,
     AnalyteNotFoundError,
 )
+from domain.exception.authentication_exception import AuthenticationError
 from domain.exception.client_exception import (
     ClientAlreadyExistsError,
     ClientNotFoundError,
@@ -52,6 +53,7 @@ from domain.util.constants import (
 from infrastructure.util.constants import (
     AnalysisMethodErrorType,
     AnalyteErrorType,
+    AuthenticationErrorType,
     ClientErrorType,
     CriteriaErrorType,
     DomainErrorType,
@@ -63,6 +65,19 @@ from infrastructure.util.constants import (
     UnexpectedErrorType,
     UserErrorType,
 )
+
+
+async def authentication_exception_handler(
+    request: Request, exception: AuthenticationError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={
+            "type": AuthenticationErrorType.AUTHENTICATION_FAILED.value,
+            "message": str(exception),
+        },
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 async def role_already_exists_exception_handler(

@@ -1,14 +1,14 @@
 from domain.exception.role_exception import RoleNotFoundError
 from domain.model.user import User
 from domain.spi.user_persistence_port import UserPersistencePort
+from infrastructure.output.postgresql.mapper.user_entity_mapper import (
+    UserEntityMapper,
+)
 from infrastructure.output.postgresql.repository.role_repository import (
     RolePostgreSQLRepository,
 )
 from infrastructure.output.postgresql.repository.user_repository import (
     UserPostgreSQLRepository,
-)
-from src.infrastructure.output.postgresql.mapper.user_entity_mapper import (
-    UserEntityMapper,
 )
 
 

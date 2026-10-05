@@ -8,7 +8,7 @@ from domain.util.constants import UserRole
 class UserRequestDto(BaseModel):
     name: str = Field(min_length=1, max_length=150)
     username: str = Field(min_length=1, max_length=150)
-    password: str = Field(min_length=8, max_length=150)
+    password: str = Field(min_length=4, max_length=150)
     email: EmailStr
     roles: list[UserRole] = Field(min_length=1)
 

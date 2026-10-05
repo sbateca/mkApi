@@ -4,6 +4,7 @@ import hashlib
 import bcrypt
 
 from domain.spi.password_hasher_port import PasswordHasherPort
+from infrastructure.util.constants import ENCODE_TYPE
 
 
 class BcryptPasswordHasher(PasswordHasherPort):
@@ -13,19 +14,19 @@ class BcryptPasswordHasher(PasswordHasherPort):
     def hash(self, password: str) -> str:
         password_bytes = self._encode_password(password)
         return bcrypt.hashpw(password_bytes, bcrypt.gensalt(self.rounds)).decode(
-            "utf-8"
+            ENCODE_TYPE
         )
 
     def verify(self, password: str, password_hash: str) -> bool:
         try:
             return bcrypt.checkpw(
                 self._encode_password(password),
-                password_hash.encode("utf-8"),
+                password_hash.encode(ENCODE_TYPE),
             )
         except ValueError:
             return False
 
     @staticmethod
     def _encode_password(password: str) -> bytes:
-        digest = hashlib.sha256(password.encode("utf-8")).digest()
+        digest = hashlib.sha256(password.encode(ENCODE_TYPE)).digest()
         return base64.b64encode(digest)
