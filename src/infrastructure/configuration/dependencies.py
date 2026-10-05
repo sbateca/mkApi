@@ -7,10 +7,14 @@ from application.handler.analysis_method_handler_interface import (
     AnalysisMethodHandlerInterface,
 )
 from application.handler.analyte_handler_interface import AnalyteHandlerInterface
+from application.handler.authentication_handler_interface import (
+    AuthenticationHandlerInterface,
+)
 from application.handler.client_handler_interface import ClientHandlerInterface
 from application.handler.criteria_handler_interface import CriteriaHandlerInterface
 from application.handler.impl.analysis_method_handler import AnalysisMethodHandler
 from application.handler.impl.analyte_handler import AnalyteHandler
+from application.handler.impl.authentication_handler import AuthenticationHandler
 from application.handler.impl.client_handler import ClientHandler
 from application.handler.impl.criteria_handler import CriteriaHandler
 from application.handler.impl.role_handler import RoleHandler
@@ -29,6 +33,7 @@ from application.mapper.analysis_method_mapper import AnalysisMethodMapper
 from application.mapper.analyte_mapper import AnalyteMapper
 from application.mapper.client_mapper import ClientMapper
 from application.mapper.criteria_mapper import CriteriaMapper
+from application.mapper.login_mapper import LoginMapper
 from application.mapper.role_mapper import RoleMapper
 from application.mapper.sample_mapper import SampleMapper
 from application.mapper.sample_type_mapper import SampleTypeMapper
@@ -47,17 +52,22 @@ from domain.api.test_type_service_port import TestTypeServicePort
 from domain.api.user_service_port import UserServicePort
 from domain.spi.analysis_method_persistence_port import AnalysisMethodPersistencePort
 from domain.spi.analyte_persistence_port import AnalytePersistencePort
+from domain.spi.authentication_service_port import AuthenticationServicePort
 from domain.spi.client_persistence_port import ClientPersistencePort
 from domain.spi.criteria_persistence_port import CriteriaPersistencePort
 from domain.spi.password_hasher_port import PasswordHasherPort
+from domain.spi.refresh_token_persistence_port import RefreshTokenPersistencePort
+from domain.spi.refresh_token_port import RefreshTokenPort
 from domain.spi.role_persistence_port import RolePersistencePort
 from domain.spi.sample_persistence_port import SamplePersistencePort
 from domain.spi.sample_type_persistence_port import SampleTypePersistencePort
 from domain.spi.test_persistence_port import TestPersistencePort
 from domain.spi.test_type_persistence_port import TestTypePersistencePort
+from domain.spi.token_port import TokenPort
 from domain.spi.user_persistence_port import UserPersistencePort
 from domain.usecase.analysis_method_use_case import AnalysisMethodUseCase
 from domain.usecase.analyte_use_case import AnalyteUseCase
+from domain.usecase.authentication_use_case import AuthenticationUseCase
 from domain.usecase.client_use_case import ClientUseCase
 from domain.usecase.criteria_use_case import CriteriaUseCase
 from domain.usecase.role_usecase import RoleUseCase
@@ -66,6 +76,7 @@ from domain.usecase.sample_use_case import SampleUseCase
 from domain.usecase.test_type_use_case import TestTypeUseCase
 from domain.usecase.test_use_case import TestUseCase
 from domain.usecase.user_use_case import UserUseCase
+from infrastructure.configuration.settings import get_settings
 from infrastructure.output.observability.logger_adapter import (
     LoggerAdapter,
 )
@@ -80,6 +91,9 @@ from infrastructure.output.postgresql.adapter.client_persistence_adapter import 
 )
 from infrastructure.output.postgresql.adapter.criteria_persistence_adapter import (
     CriteriaPersistenceAdapter,
+)
+from infrastructure.output.postgresql.adapter.refresh_token_persistence_adapter import (
+    RefreshTokenPersistenceAdapter,
 )
 from infrastructure.output.postgresql.adapter.role_persistence_adapter import (
     RolePersistenceAdapter,
@@ -138,6 +152,9 @@ from infrastructure.output.postgresql.repository.client_repository import (
 from infrastructure.output.postgresql.repository.criteria_repository import (
     CriteriaPostgreSQLRepository,
 )
+from infrastructure.output.postgresql.repository.refresh_token_repository import (
+    RefreshTokenPostgreSQLRepository,
+)
 from infrastructure.output.postgresql.repository.role_repository import (
     RolePostgreSQLRepository,
 )
@@ -157,6 +174,8 @@ from infrastructure.output.postgresql.repository.user_repository import (
     UserPostgreSQLRepository,
 )
 from infrastructure.output.security.bcrypt_password_hasher import BcryptPasswordHasher
+from infrastructure.output.security.jwt_adapter import JwtAdapter
+from infrastructure.output.security.refresh_token_adapter import RefreshTokenAdapter
 
 
 def get_criteria_mapper() -> CriteriaMapper:
@@ -223,6 +242,33 @@ def get_user_persistence_adapter(
 
 def get_password_hasher() -> PasswordHasherPort:
     return BcryptPasswordHasher()
+
+
+def get_jwt_adapter() -> TokenPort:
+    settings = get_settings()
+    return JwtAdapter(
+        settings.jwt_secret_key,
+        settings.jwt_algorithm,
+        settings.jwt_expiration_seconds,
+    )
+
+
+def get_refresh_token_repository(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> RefreshTokenPostgreSQLRepository:
+    return RefreshTokenPostgreSQLRepository(session)
+
+
+def get_refresh_token_persistence_adapter(
+    repository: Annotated[
+        RefreshTokenPostgreSQLRepository, Depends(get_refresh_token_repository)
+    ],
+) -> RefreshTokenPersistencePort:
+    return RefreshTokenPersistenceAdapter(repository)
+
+
+def get_refresh_token_adapter() -> RefreshTokenPort:
+    return RefreshTokenAdapter()
 
 
 def get_user_usecase(
@@ -646,3 +692,33 @@ def get_test_handler(
     service: Annotated[TestServicePort, Depends(get_test_usecase)],
 ) -> TestHandlerInterface:
     return TestHandler(mapper, service)
+
+
+def get_authentication_use_case(
+    user_persistence_port: Annotated[
+        UserPersistencePort, Depends(get_user_persistence_adapter)
+    ],
+    token_port: Annotated[TokenPort, Depends(get_jwt_adapter)],
+    password_hasher_port: Annotated[PasswordHasherPort, Depends(get_password_hasher)],
+    refresh_token_persistence_port: Annotated[
+        RefreshTokenPersistencePort,
+        Depends(get_refresh_token_persistence_adapter),
+    ],
+    refresh_token_port: Annotated[RefreshTokenPort, Depends(get_refresh_token_adapter)],
+) -> AuthenticationServicePort:
+    settings = get_settings()
+    return AuthenticationUseCase(
+        user_persistence_port=user_persistence_port,
+        token_port=token_port,
+        password_hasher_port=password_hasher_port,
+        refresh_token_persistence_port=refresh_token_persistence_port,
+        refresh_token_port=refresh_token_port,
+        refresh_token_expiration_seconds=settings.refresh_token_expiration_seconds,
+    )
+
+
+def get_authentication_handler(
+    service: Annotated[AuthenticationServicePort, Depends(get_authentication_use_case)],
+    mapper: Annotated[LoginMapper, Depends(LoginMapper)],
+) -> AuthenticationHandlerInterface:
+    return AuthenticationHandler(login_mapper=mapper, authentication_service=service)

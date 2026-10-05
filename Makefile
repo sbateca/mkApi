@@ -1,13 +1,23 @@
 IMAGE_NAME ?= mkapi
 HOST_PORT ?= 8000
 POSTGRES_HOST_PORT ?= 5433
+ENV_FILE ?= .env.dev
 
-.PHONY: run run-otel test test-coverage lint lint-fix format format-check quality clean docker-up-dev docker-up-prod docker-down docker-logs docker-logs-otel docker-migrate revision migrate downgrade current history
+.PHONY: check-env-file run run-otel test test-coverage lint lint-fix format format-check quality clean docker-up-dev docker-up-prod docker-down docker-logs docker-logs-otel docker-migrate revision migrate downgrade current history
 
-run:
-	poetry run uvicorn main:app --reload --app-dir src
+check-env-file:
+	@test -f "$(ENV_FILE)" || (echo "Environment file not found: $(ENV_FILE)" && exit 1)
 
-run-otel:
+run: check-env-file
+	@set -a; \
+	. "$(ENV_FILE)"; \
+	set +a; \
+	exec poetry run uvicorn main:app --reload --app-dir src
+
+run-otel: check-env-file
+	@set -a; \
+	. "$(ENV_FILE)"; \
+	set +a; \
 	OTEL_SERVICE_NAME=mk-api-dev \
 	OTEL_RESOURCE_ATTRIBUTES=service.name=mk-api-dev,service.version=0.1.0,deployment.environment=development,service.namespace=mkapi \
 	OTEL_TRACES_EXPORTER=otlp \
@@ -17,7 +27,7 @@ run-otel:
 	OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf \
 	OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true \
 	OTEL_PYTHON_LOG_LEVEL=info \
-	poetry run opentelemetry-instrument uvicorn main:app --reload --app-dir src
+	exec poetry run opentelemetry-instrument uvicorn main:app --reload --app-dir src
 
 test:
 	poetry run pytest
@@ -65,17 +75,22 @@ docker-logs-otel:
 docker-migrate:
 	docker compose --env-file .env.dev exec mkapi poetry run alembic upgrade head
 
-revision:
-	poetry run alembic revision --autogenerate -m "$(m)"
+revision: check-env-file
+	@set -a; . "$(ENV_FILE)"; set +a; \
+	exec poetry run alembic revision --autogenerate -m "$(m)"
 
-migrate:
-	poetry run alembic upgrade head
+migrate: check-env-file
+	@set -a; . "$(ENV_FILE)"; set +a; \
+	exec poetry run alembic upgrade head
 
-downgrade:
-	poetry run alembic downgrade -1
+downgrade: check-env-file
+	@set -a; . "$(ENV_FILE)"; set +a; \
+	exec poetry run alembic downgrade -1
 
-current:
-	poetry run alembic current
+current: check-env-file
+	@set -a; . "$(ENV_FILE)"; set +a; \
+	exec poetry run alembic current
 
-history:
-	poetry run alembic history
+history: check-env-file
+	@set -a; . "$(ENV_FILE)"; set +a; \
+	exec poetry run alembic history

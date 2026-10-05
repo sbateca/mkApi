@@ -4,6 +4,9 @@ from infrastructure.output.postgresql.entity.analysis_method_entity import (
 from infrastructure.output.postgresql.entity.analyte_entity import AnalyteEntity
 from infrastructure.output.postgresql.entity.client_entity import ClientEntity
 from infrastructure.output.postgresql.entity.criteria_entity import CriteriaEntity
+from infrastructure.output.postgresql.entity.refresh_token_entity import (
+    RefreshTokenEntity,
+)
 from infrastructure.output.postgresql.entity.role_entity import RoleEntity
 from infrastructure.output.postgresql.entity.sample_entity import SampleEntity
 from infrastructure.output.postgresql.entity.sample_type_entity import SampleTypeEntity
@@ -18,6 +21,7 @@ __all__ = [
     "ClientEntity",
     "CriteriaEntity",
     "RoleEntity",
+    "RefreshTokenEntity",
     "SampleEntity",
     "SampleTypeEntity",
     "TestEntity",

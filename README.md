@@ -141,6 +141,33 @@ Install dependencies:
 poetry install
 ```
 
+The application reads configuration exclusively from the process environment;
+it does not select or load a `.env` file. Configure at least:
+
+```sh
+DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/microlab
+JWT_SECRET_KEY=<a-random-secret-with-at-least-32-characters>
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION_SECONDS=900
+REFRESH_TOKEN_EXPIRATION_SECONDS=2592000
+```
+
+Generate a suitable secret with `openssl rand -hex 32`. Do not commit or reuse
+the production secret; the application refuses to start when it is missing or
+shorter than 32 characters.
+
+In production, inject these variables through the deployment platform or a
+secret manager. For Docker Compose, choose the file externally when starting
+the stack:
+
+```sh
+docker compose --env-file /secure/path/mkapi.env up --build
+```
+
+Compose resolves that file and explicitly passes the required values into the
+container. For a direct local run, export the variables in the shell before
+starting Uvicorn. This keeps environment selection outside the application.
+
 The current PostgreSQL session configuration points to:
 
 ```text
@@ -156,6 +183,14 @@ Run the API with the Makefile:
 
 ```sh
 make run
+```
+
+For local development, `make run` loads `.env.dev` before starting the API.
+The application itself still reads only process environment variables. To use a
+different local file:
+
+```sh
+make run ENV_FILE=.env.local
 ```
 
 Equivalent command:
@@ -215,6 +250,17 @@ Apply migrations:
 ```sh
 make migrate
 ```
+
+Authentication stores hashed, rotating refresh tokens in the `refresh_tokens`
+table. Apply the latest migration before using `POST /auth/refresh` or
+`POST /auth/logout`. Access tokens remain stateless and short-lived. As with
+`make run`, migration commands load `ENV_FILE` (default: `.env.dev`) externally
+through the Makefile.
+
+Each login creates an independent refresh-token family. Rotation links the old
+token to its replacement. Reuse of an already rotated token is treated as a
+possible theft and revokes the entire family; logout also revokes that session's
+family without closing sessions created by other logins.
 
 Rollback the latest migration:
 

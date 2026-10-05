@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.exceptions import RequestValidationError
 
 from application.exception.request_validation_error import (
@@ -12,6 +12,7 @@ from domain.exception.analyte_exception import (
     AnalyteAlreadyExistsError,
     AnalyteNotFoundError,
 )
+from domain.exception.authentication_exception import AuthenticationError
 from domain.exception.client_exception import (
     ClientAlreadyExistsError,
     ClientNotFoundError,
@@ -36,10 +37,14 @@ from domain.exception.test_type_exception import (
     TestTypeNotFoundError,
 )
 from domain.exception.user_exception import UserAlreadyExistsError, UserNotFoundError
+from domain.util.constants import UserRole
 from infrastructure.input.rest.analysis_method_controller import (
     router as analysis_method_router,
 )
 from infrastructure.input.rest.analyte_controller import router as analyte_router
+from infrastructure.input.rest.authentication_controller import (
+    router as authentication_router,
+)
 from infrastructure.input.rest.client_controller import router as client_router
 from infrastructure.input.rest.criteria_controller import router as criteria_router
 from infrastructure.input.rest.exception.exception_handler import (
@@ -48,6 +53,7 @@ from infrastructure.input.rest.exception.exception_handler import (
     analyte_already_exists_exception_handler,
     analyte_not_found_exception_handler,
     application_request_validation_exception_handler,
+    authentication_exception_handler,
     client_already_exists_excepion_handler,
     client_not_found_exception_handler,
     criteria_already_exists_exception_handler,
@@ -72,6 +78,10 @@ from infrastructure.input.rest.sample_controller import router as sample_router
 from infrastructure.input.rest.sample_type_controller import (
     router as sample_type_router,
 )
+from infrastructure.input.rest.security.authentication import (
+    get_authenticated_user,
+    require_roles,
+)
 from infrastructure.input.rest.test_controller import router as test_router
 from infrastructure.input.rest.test_type_controller import router as test_type_router
 from infrastructure.input.rest.user_controller import router as user_router
@@ -81,16 +91,20 @@ app = FastAPI(
     version="1.0.0",
 )
 
-app.include_router(client_router)
-app.include_router(analysis_method_router)
-app.include_router(test_type_router)
-app.include_router(analyte_router)
-app.include_router(sample_type_router)
-app.include_router(criteria_router)
-app.include_router(sample_router)
-app.include_router(test_router)
-app.include_router(role_router)
-app.include_router(user_router)
+app.include_router(authentication_router)
+authenticated = [Depends(get_authenticated_user)]
+admin_only = [Depends(require_roles(UserRole.ADMIN))]
+
+app.include_router(client_router, dependencies=authenticated)
+app.include_router(analysis_method_router, dependencies=authenticated)
+app.include_router(test_type_router, dependencies=authenticated)
+app.include_router(analyte_router, dependencies=authenticated)
+app.include_router(sample_type_router, dependencies=authenticated)
+app.include_router(criteria_router, dependencies=authenticated)
+app.include_router(sample_router, dependencies=authenticated)
+app.include_router(test_router, dependencies=authenticated)
+app.include_router(role_router, dependencies=admin_only)
+app.include_router(user_router, dependencies=admin_only)
 
 app.add_exception_handler(
     RequestValidationError,
@@ -155,5 +169,6 @@ app.add_exception_handler(RoleAlreadyExistsError, role_already_exists_exception_
 app.add_exception_handler(RoleNotFoundError, role_not_found_exception_handler)
 app.add_exception_handler(UserAlreadyExistsError, user_already_exists_exception_handler)
 app.add_exception_handler(UserNotFoundError, user_not_found_exception_handler)
+app.add_exception_handler(AuthenticationError, authentication_exception_handler)
 app.add_exception_handler(DomainError, domain_exception_handler)
 app.add_exception_handler(Exception, unexpected_exception_handler)

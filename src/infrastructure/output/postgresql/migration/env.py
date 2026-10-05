@@ -13,6 +13,7 @@ SRC_DIR = BASE_DIR / "src"
 
 sys.path.insert(0, str(SRC_DIR))
 
+import infrastructure.output.postgresql.entity  # noqa: E402, F401
 from infrastructure.configuration.settings import get_settings  # noqa: E402
 from infrastructure.output.postgresql.database.base import Base  # noqa: E402
 
@@ -29,7 +30,6 @@ config.set_main_option(
 )
 
 target_metadata = Base.metadata
-print("ALEMBIC TABLES:", Base.metadata.tables.keys())
 
 
 def run_migrations_offline() -> None:
