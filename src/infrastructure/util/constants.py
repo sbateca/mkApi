@@ -50,12 +50,33 @@ class RoleErrorType(Enum):
     ROLE_NOT_FOUND = "ROLE_NOT_FOUND"
 
 
+class ReportErrorType(Enum):
+    REPORT_ALREADY_EXISTS = "REPORT_ALREADY_EXISTS"
+    REPORT_NOT_FOUND = "REPORT_NOT_FOUND"
+
+
 class DomainErrorType(Enum):
     DOMAIN_ERROR = "DOMAIN_ERROR"
 
 
+class ValidationErrorType(Enum):
+    VALIDATION_ERROR = "VALIDATION_ERROR"
+
+
 class UnexpectedErrorType(Enum):
     UNEXPECTED_ERROR = "UNEXPECTED_ERROR"
+
+
+class JsonResponseContentField(Enum):
+    TYPE = "type"
+    FIELD = "field"
+    CODE = "code"
+    MESSAGE = "message"
+    ERRORS = "errors"
+
+
+class JsonResponseHeaderField(Enum):
+    WWW_AUTHENTICATE = "WWW-Authenticate"
 
 
 class AuthenticationErrorType(Enum):

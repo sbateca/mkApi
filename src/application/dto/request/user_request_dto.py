@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from application.dto.request.validators.common_validators import validate_uuid
@@ -11,6 +13,7 @@ class UserRequestDto(BaseModel):
     password: str = Field(min_length=4, max_length=150)
     email: EmailStr
     roles: list[UserRole] = Field(min_length=1)
+    client_id: UUID | None = None
 
 
 class UserIdRequestDto(BaseModel):

@@ -13,6 +13,7 @@ class UserMapper:
             password=request.password,
             email=str(request.email),
             roles=[Role(name=name) for name in request.roles],
+            client_id=request.client_id,
         )
 
     def to_response(self, user: User) -> UserResponseDto:
@@ -22,6 +23,7 @@ class UserMapper:
             username=user.username,
             email=user.email,
             roles=[RoleResponseDto(id=role.id, name=role.name) for role in user.roles],
+            client_id=user.client_id,
         )
 
     def to_response_list(self, users: list[User]) -> list[UserResponseDto]:

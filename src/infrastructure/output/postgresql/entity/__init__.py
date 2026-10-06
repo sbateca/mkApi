@@ -29,3 +29,7 @@ __all__ = [
     "UserEntity",
     "UserRoleEntity",
 ]
+
+from infrastructure.output.postgresql.entity.report_entity import ReportEntity
+
+__all__ += ["ReportEntity"]

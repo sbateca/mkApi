@@ -24,6 +24,7 @@ from domain.exception.criteria_exception import (
     CriteriaNotFoundError,
 )
 from domain.exception.domain_exception import DomainError
+from domain.exception.report_exception import ReportNotFoundError
 from domain.exception.role_exception import RoleAlreadyExistsError, RoleNotFoundError
 from domain.exception.sample_exception import (
     SampleAlreadyExistsError,
@@ -57,6 +58,9 @@ from infrastructure.util.constants import (
     ClientErrorType,
     CriteriaErrorType,
     DomainErrorType,
+    JsonResponseContentField,
+    JsonResponseHeaderField,
+    ReportErrorType,
     RoleErrorType,
     SampleErrorType,
     SampleTypeErrorType,
@@ -64,6 +68,7 @@ from infrastructure.util.constants import (
     TestTypeErrorType,
     UnexpectedErrorType,
     UserErrorType,
+    ValidationErrorType,
 )
 
 
@@ -73,10 +78,10 @@ async def authentication_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_401_UNAUTHORIZED,
         content={
-            "type": AuthenticationErrorType.AUTHENTICATION_FAILED.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: AuthenticationErrorType.AUTHENTICATION_FAILED.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
-        headers={"WWW-Authenticate": "Bearer"},
+        headers={JsonResponseHeaderField.WWW_AUTHENTICATE.value: "Bearer"},
     )
 
 
@@ -86,8 +91,8 @@ async def role_already_exists_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={
-            "type": RoleErrorType.ROLE_ALREADY_EXISTS.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: RoleErrorType.ROLE_ALREADY_EXISTS.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 
@@ -97,7 +102,10 @@ async def role_not_found_exception_handler(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
-        content={"type": RoleErrorType.ROLE_NOT_FOUND.value, "message": str(exception)},
+        content={
+            JsonResponseContentField.TYPE.value: RoleErrorType.ROLE_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
+        },
     )
 
 
@@ -107,8 +115,8 @@ async def user_already_exists_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={
-            "type": UserErrorType.USER_ALREADY_EXISTS.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: UserErrorType.USER_ALREADY_EXISTS.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 
@@ -118,7 +126,10 @@ async def user_not_found_exception_handler(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
-        content={"type": UserErrorType.USER_NOT_FOUND.value, "message": str(exception)},
+        content={
+            JsonResponseContentField.TYPE.value: UserErrorType.USER_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
+        },
     )
 
 
@@ -128,8 +139,8 @@ async def sample_already_exists_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={
-            "type": SampleErrorType.SAMPLE_ALREADY_EXISTS.value,
-            "message": f"{SAMPLE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+            JsonResponseContentField.TYPE.value: SampleErrorType.SAMPLE_ALREADY_EXISTS.value,
+            JsonResponseContentField.MESSAGE.value: f"{SAMPLE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
         },
     )
 
@@ -140,8 +151,8 @@ async def sample_not_found_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
-            "type": SampleErrorType.SAMPLE_NOT_FOUND.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: SampleErrorType.SAMPLE_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 
@@ -152,8 +163,8 @@ async def test_not_found_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
-            "type": TestErrorType.TEST_NOT_FOUND.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: TestErrorType.TEST_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 
@@ -164,8 +175,8 @@ async def criteria_already_exists_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={
-            "type": CriteriaErrorType.CRITERIA_ALREADY_EXISTS.value,
-            "message": f"{CRITERIA_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+            JsonResponseContentField.TYPE.value: CriteriaErrorType.CRITERIA_ALREADY_EXISTS.value,
+            JsonResponseContentField.MESSAGE.value: f"{CRITERIA_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
         },
     )
 
@@ -176,8 +187,8 @@ async def criteria_not_found_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
-            "type": CriteriaErrorType.CRITERIA_NOT_FOUND.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: CriteriaErrorType.CRITERIA_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 
@@ -188,8 +199,8 @@ async def sample_type_already_exists_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={
-            "type": SampleTypeErrorType.SAMPLE_TYPE_ALREADY_EXISTS.value,
-            "message": f"{SAMPLE_TYPE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+            JsonResponseContentField.TYPE.value: SampleTypeErrorType.SAMPLE_TYPE_ALREADY_EXISTS.value,
+            JsonResponseContentField.MESSAGE.value: f"{SAMPLE_TYPE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
         },
     )
 
@@ -200,8 +211,8 @@ async def sample_type_not_found_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
-            "type": SampleTypeErrorType.SAMPLE_TYPE_NOT_FOUND.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: SampleTypeErrorType.SAMPLE_TYPE_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 
@@ -212,8 +223,8 @@ async def analyte_already_exists_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={
-            "type": AnalyteErrorType.ANALYTE_ALREADY_EXISTS.value,
-            "message": f"{ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+            JsonResponseContentField.TYPE.value: AnalyteErrorType.ANALYTE_ALREADY_EXISTS.value,
+            JsonResponseContentField.MESSAGE.value: f"{ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
         },
     )
 
@@ -224,8 +235,8 @@ async def analyte_not_found_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
-            "type": AnalyteErrorType.ANALYTE_NOT_FOUND.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: AnalyteErrorType.ANALYTE_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 
@@ -236,8 +247,8 @@ async def test_type_already_exists_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={
-            "type": TestTypeErrorType.TEST_TYPE_ALREADY_EXISTS.value,
-            "message": f"{TEST_TYPE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+            JsonResponseContentField.TYPE.value: TestTypeErrorType.TEST_TYPE_ALREADY_EXISTS.value,
+            JsonResponseContentField.MESSAGE.value: f"{TEST_TYPE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
         },
     )
 
@@ -248,8 +259,8 @@ async def test_type_not_found_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
-            "type": TestTypeErrorType.TEST_TYPE_NOT_FOUND.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: TestTypeErrorType.TEST_TYPE_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 
@@ -260,8 +271,8 @@ async def analysis_method_already_exists_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={
-            "type": AnalysisMethodErrorType.ANALYSIS_METHOD_ALREADY_EXISTS.value,
-            "message": (
+            JsonResponseContentField.TYPE.value: AnalysisMethodErrorType.ANALYSIS_METHOD_ALREADY_EXISTS.value,
+            JsonResponseContentField.MESSAGE.value: (
                 f"{ANALYSIS_METHOD_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}"
             ),
         },
@@ -274,8 +285,8 @@ async def analysis_method_not_found_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
-            "type": AnalysisMethodErrorType.ANALYSIS_METHOD_NOT_FOUND.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: AnalysisMethodErrorType.ANALYSIS_METHOD_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 
@@ -295,17 +306,17 @@ async def request_validation_exception_handler(
 
         errors.append(
             {
-                "field": field,
-                "message": error["msg"],
+                JsonResponseContentField.FIELD.value: field,
+                JsonResponseContentField.MESSAGE.value: error["msg"],
             }
         )
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={
-            "code": "VALIDATION_ERROR",
-            "message": REQUEST_VALIDATION_FAILED_TEXT_MESSAGE,
-            "errors": errors,
+            JsonResponseContentField.TYPE.value: ValidationErrorType.VALIDATION_ERROR.value,
+            JsonResponseContentField.MESSAGE.value: REQUEST_VALIDATION_FAILED_TEXT_MESSAGE,
+            JsonResponseContentField.ERRORS.value: errors,
         },
     )
 
@@ -316,8 +327,8 @@ async def client_already_exists_excepion_handler(
     return JSONResponse(
         status_code=status.HTTP_409_CONFLICT,
         content={
-            "type": ClientErrorType.CLIENT_ALREADY_EXISTS.value,
-            "message": f"{CLIENT_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+            JsonResponseContentField.TYPE.value: ClientErrorType.CLIENT_ALREADY_EXISTS.value,
+            JsonResponseContentField.MESSAGE.value: f"{CLIENT_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
         },
     )
 
@@ -328,8 +339,8 @@ async def client_not_found_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
-            "type": ClientErrorType.CLIENT_NOT_FOUND.value,
-            "message": str(exception),
+            JsonResponseContentField.TYPE.value: ClientErrorType.CLIENT_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 
@@ -340,8 +351,8 @@ async def domain_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={
-            "type": DomainErrorType.DOMAIN_ERROR.value,
-            "message": f"{DOMAIN_ERROR_MESSAGE}: {str(exception)}",
+            JsonResponseContentField.TYPE.value: DomainErrorType.DOMAIN_ERROR.value,
+            JsonResponseContentField.MESSAGE.value: f"{DOMAIN_ERROR_MESSAGE}: {str(exception)}",
         },
     )
 
@@ -353,8 +364,8 @@ async def unexpected_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "type": UnexpectedErrorType.UNEXPECTED_ERROR.value,
-            "message": f"{UNEXPECTED_ERROR_MESSAGE}: {str(exception)}",
+            JsonResponseContentField.TYPE.value: UnexpectedErrorType.UNEXPECTED_ERROR.value,
+            JsonResponseContentField.MESSAGE.value: f"{UNEXPECTED_ERROR_MESSAGE}: {str(exception)}",
         },
     )
 
@@ -366,8 +377,20 @@ async def application_request_validation_exception_handler(
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={
-            "code": "VALIDATION_ERROR",
-            "message": REQUEST_VALIDATION_FAILED_TEXT_MESSAGE,
-            "errors": exception.errors,
+            JsonResponseContentField.TYPE.value: ValidationErrorType.VALIDATION_ERROR.value,
+            JsonResponseContentField.MESSAGE.value: REQUEST_VALIDATION_FAILED_TEXT_MESSAGE,
+            JsonResponseContentField.ERRORS.value: exception.errors,
+        },
+    )
+
+
+async def report_not_found_exception_handler(
+    request: Request, exception: ReportNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            JsonResponseContentField.TYPE.value: ReportErrorType.REPORT_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )

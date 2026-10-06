@@ -39,6 +39,7 @@ async def test_save_user_reloads_relationships_before_returning():
 async def test_update_user_attaches_new_role_rows_to_persistent_user_only():
     user_id = UUID("a43b10d8-3ba7-4e2a-a510-baf8ac45dc1e")
     role_id = UUID("300f99a7-620e-4cc1-9c52-7848098bc6e5")
+    client_id = UUID("63cc2808-29d7-4c84-aa9f-feca7792a893")
     current = UserEntity(
         id=user_id,
         name="Old name",
@@ -53,6 +54,7 @@ async def test_update_user_attaches_new_role_rows_to_persistent_user_only():
         username="updated-username",
         password="new-hash",
         email="updated@example.com",
+        client_id=client_id,
     )
     source_role = UserRoleEntity(role_id=role_id)
     updated.user_roles = [source_role]
@@ -68,6 +70,7 @@ async def test_update_user_attaches_new_role_rows_to_persistent_user_only():
     assert current.username == "updated-username"
     assert current.password == "new-hash"
     assert current.email == "updated@example.com"
+    assert current.client_id == client_id
     assert len(current.user_roles) == 1
     assert current.user_roles[0] is not source_role
     assert current.user_roles[0].role_id == role_id

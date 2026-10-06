@@ -11,6 +11,7 @@ from infrastructure.output.postgresql.mapper.user_entity_mapper import UserEntit
 
 ROLE_ID = UUID("300f99a7-620e-4cc1-9c52-7848098bc6e5")
 USER_ID = UUID("a43b10d8-3ba7-4e2a-a510-baf8ac45dc1e")
+CLIENT_ID = UUID("63cc2808-29d7-4c84-aa9f-feca7792a893")
 
 
 def test_role_entity_mapper_maps_both_directions_and_lists():
@@ -34,10 +35,12 @@ def test_user_entity_mapper_maps_roles_both_directions():
         password="hashed-password",
         email="admin@example.com",
         roles=[Role(id=ROLE_ID, name=UserRole.ADMIN)],
+        client_id=CLIENT_ID,
     )
 
     entity = mapper.to_entity(domain)
     assert entity.user_roles[0].role_id == ROLE_ID
+    assert entity.client_id == CLIENT_ID
 
     loaded_role = RoleEntity(id=ROLE_ID, name="Admin")
     loaded_join = UserRoleEntity(user_id=USER_ID, role_id=ROLE_ID)
@@ -48,6 +51,7 @@ def test_user_entity_mapper_maps_roles_both_directions():
         username=domain.username,
         password=domain.password,
         email=domain.email,
+        client_id=CLIENT_ID,
     )
     loaded_user.user_roles = [loaded_join]
 

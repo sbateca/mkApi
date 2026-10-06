@@ -3,7 +3,12 @@ from uuid import UUID
 
 import pytest
 
-from domain.exception.user_exception import UserAlreadyExistsError, UserNotFoundError
+from domain.exception.client_exception import ClientNotFoundError
+from domain.exception.user_exception import (
+    UserAlreadyExistsError,
+    UserClientRequiredError,
+    UserNotFoundError,
+)
 from domain.model.role import Role
 from domain.model.user import User
 from domain.usecase.user_use_case import UserUseCase
@@ -21,11 +26,17 @@ def make_user(*, user_id=None, email="admin2@example.com", username="admin2"):
     )
 
 
-def make_use_case(user_persistence=None, role_persistence=None, password_hasher=None):
+def make_use_case(
+    user_persistence=None,
+    role_persistence=None,
+    password_hasher=None,
+    client_persistence=None,
+):
     return UserUseCase(
         user_persistence or AsyncMock(),
         role_persistence or AsyncMock(),
         password_hasher or Mock(),
+        client_persistence or AsyncMock(),
     )
 
 
@@ -139,7 +150,12 @@ async def test_update_user_queries_roles_by_string_value_and_awaits_uniqueness_c
     role_persistence.find_roles_by_names.return_value = resolved_roles
     password_hasher = Mock()
     password_hasher.hash.return_value = "new-hash"
-    use_case = UserUseCase(user_persistence, role_persistence, password_hasher)
+    use_case = UserUseCase(
+        user_persistence,
+        role_persistence,
+        password_hasher,
+        AsyncMock(),
+    )
 
     result = await use_case.update_user(str(user_id), updated_user)
 
@@ -153,3 +169,44 @@ async def test_update_user_queries_roles_by_string_value_and_awaits_uniqueness_c
     assert updated_user.password == "new-hash"
     assert updated_user.roles == resolved_roles
     assert result is updated_user
+
+
+@pytest.mark.asyncio
+async def test_create_client_user_requires_client_id():
+    user = make_user()
+    user.roles = [Role(name=UserRole.CLIENT)]
+    persistence = AsyncMock()
+    persistence.find_by_email.return_value = None
+    persistence.find_by_username.return_value = None
+    roles = AsyncMock()
+    roles.find_roles_by_names.return_value = [Role(name=UserRole.CLIENT)]
+
+    with pytest.raises(UserClientRequiredError):
+        await make_use_case(persistence, roles).create_user(user)
+
+    persistence.save.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_create_user_rejects_unknown_client():
+    client_id = UUID("63cc2808-29d7-4c84-aa9f-feca7792a893")
+    user = make_user()
+    user.roles = [Role(name=UserRole.CLIENT)]
+    user.client_id = client_id
+    persistence = AsyncMock()
+    persistence.find_by_email.return_value = None
+    persistence.find_by_username.return_value = None
+    roles = AsyncMock()
+    roles.find_roles_by_names.return_value = [Role(name=UserRole.CLIENT)]
+    clients = AsyncMock()
+    clients.get_client_by_id.return_value = None
+
+    with pytest.raises(ClientNotFoundError):
+        await make_use_case(
+            persistence,
+            roles,
+            client_persistence=clients,
+        ).create_user(user)
+
+    clients.get_client_by_id.assert_awaited_once_with(str(client_id))
+    persistence.save.assert_not_awaited()

@@ -82,3 +82,8 @@ class LoginRequestError(Enum):
 
 REQUEST_VALIDATION_FAILED_TEXT_MESSAGE = "Request validation failed"
 VALID_CLIENT_ID_REGEX = r"^[A-Za-z0-9_-]+$"
+
+
+class ReportRequestError(Enum):
+    BLANK_REPORT_ID = "Report ID cannot be blank"
+    INVALID_REPORT_ID = "Report ID must be a valid UUID"

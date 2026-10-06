@@ -11,4 +11,5 @@ class User:
     password: str
     email: str
     roles: list[Role]
+    client_id: UUID | None = None
     id: UUID | None = None
