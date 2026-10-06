@@ -15,6 +15,7 @@ class UserEntityMapper:
             username=user.username,
             password=user.password,
             email=user.email,
+            client_id=user.client_id,
         )
         entity.user_roles = [UserRoleEntity(role_id=role.id) for role in user.roles]
         return entity
@@ -26,6 +27,7 @@ class UserEntityMapper:
             username=entity.username,
             password=entity.password,
             email=entity.email,
+            client_id=entity.client_id,
             roles=[
                 self.role_entity_mapper.to_domain(user_role.role)
                 for user_role in entity.user_roles

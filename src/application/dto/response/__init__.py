@@ -23,3 +23,7 @@ __all__ = [
     "TestResponseDto",
     "TestTypeResponseDto",
 ]
+
+from application.dto.response.report_response_dto import ReportResponseDto
+
+__all__ += ["ReportResponseDto"]

@@ -62,7 +62,7 @@ async def test_create_client_returns_validation_error_for_invalid_request():
 
     # Assert
     assert result.status_code == 422
-    assert result.json()["code"] == "VALIDATION_ERROR"
+    assert result.json()["type"] == "VALIDATION_ERROR"
 
 
 @pytest.mark.asyncio
@@ -82,7 +82,7 @@ async def test_create_client_returns_validation_error_for_missing_fields():
 
     # Assert
     assert result.status_code == 422
-    assert result.json()["code"] == "VALIDATION_ERROR"
+    assert result.json()["type"] == "VALIDATION_ERROR"
 
 
 @pytest.mark.asyncio
@@ -203,7 +203,7 @@ async def test_get_client_by_id_returns_bad_request_for_invalid_client_id():
         # Assert
         assert result.status_code == 422
         assert result.json() == {
-            "code": "VALIDATION_ERROR",
+            "type": "VALIDATION_ERROR",
             "message": "Request validation failed",
             "errors": [
                 {
@@ -288,7 +288,7 @@ async def test_update_client_returns_validation_error_for_invalid_client_id():
         # Assert
         assert result.status_code == 422
         assert result.json() == {
-            "code": "VALIDATION_ERROR",
+            "type": "VALIDATION_ERROR",
             "message": "Request validation failed",
             "errors": [
                 {
@@ -378,7 +378,7 @@ async def test_delete_client_returns_validation_error_for_invalid_client_id():
         # Assert
         assert result.status_code == 422
         assert result.json() == {
-            "code": "VALIDATION_ERROR",
+            "type": "VALIDATION_ERROR",
             "message": "Request validation failed",
             "errors": [
                 {

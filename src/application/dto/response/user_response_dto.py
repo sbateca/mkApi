@@ -11,3 +11,4 @@ class UserResponseDto(BaseModel):
     username: str
     email: str
     roles: list[RoleResponseDto]
+    client_id: UUID | None

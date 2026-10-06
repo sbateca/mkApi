@@ -10,6 +10,7 @@ from domain.util.constants import UserRole
 
 ROLE_ID = UUID("300f99a7-620e-4cc1-9c52-7848098bc6e5")
 USER_ID = UUID("a43b10d8-3ba7-4e2a-a510-baf8ac45dc1e")
+CLIENT_ID = UUID("63cc2808-29d7-4c84-aa9f-feca7792a893")
 
 
 def test_role_mapper_maps_requests_responses_and_lists():
@@ -34,10 +35,12 @@ def test_user_mapper_maps_requests_responses_and_lists_without_password_output()
         password="password-123",
         email="admin@example.com",
         roles=[UserRole.ADMIN],
+        client_id=CLIENT_ID,
     )
 
     domain = mapper.to_domain(request)
     assert domain.roles == [Role(name=UserRole.ADMIN)]
+    assert domain.client_id == CLIENT_ID
     user = User(
         id=USER_ID,
         name=domain.name,
@@ -45,10 +48,12 @@ def test_user_mapper_maps_requests_responses_and_lists_without_password_output()
         password="hashed-password",
         email=domain.email,
         roles=[Role(id=ROLE_ID, name=UserRole.ADMIN)],
+        client_id=CLIENT_ID,
     )
     response = mapper.to_response(user)
 
     assert response.id == USER_ID
     assert response.roles[0].id == ROLE_ID
+    assert response.client_id == CLIENT_ID
     assert "password" not in response.model_dump()
     assert mapper.to_response_list([user]) == [response]

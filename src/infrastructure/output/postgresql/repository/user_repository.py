@@ -51,6 +51,7 @@ class UserPostgreSQLRepository:
         current.username = user_entity.username
         current.password = user_entity.password
         current.email = user_entity.email
+        current.client_id = user_entity.client_id
         current.user_roles = [
             UserRoleEntity(role_id=user_role.role_id)
             for user_role in user_entity.user_roles

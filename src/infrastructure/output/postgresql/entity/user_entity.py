@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import String
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID as POSTGRES_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,6 +24,12 @@ class UserEntity(Base):
     username: Mapped[str] = mapped_column(String(150), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(150), nullable=False)
     email: Mapped[str] = mapped_column(String(150), nullable=False, unique=True)
+    client_id: Mapped[UUID | None] = mapped_column(
+        POSTGRES_UUID(as_uuid=True),
+        ForeignKey("clients.id"),
+        nullable=True,
+        index=True,
+    )
 
     user_roles: Mapped[list["UserRoleEntity"]] = relationship(
         back_populates="user",

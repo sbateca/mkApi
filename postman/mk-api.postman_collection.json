@@ -1022,46 +1022,571 @@
       ]
     },
     {
+      "name": "Tests",
+      "description": "Create a test for {{sampleId}} before creating a report. Related IDs must refer to existing records.",
+      "item": [
+        {
+          "name": "Create test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) pm.collectionVariables.set(\"testId\", response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tests"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"testTypeId\": \"{{testTypeId}}\",\n  \"sampleId\": \"{{sampleId}}\",\n  \"analyteId\": \"{{analyteId}}\",\n  \"analysisMethodId\": \"{{analysisMethodId}}\",\n  \"criteriaId\": \"{{criteriaId}}\",\n  \"result\": \"0 UFC/g\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get tests",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tests"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get test by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tests/{{testId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tests",
+                "{{testId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update test by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tests/{{testId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tests",
+                "{{testId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"testTypeId\": \"{{testTypeId}}\",\n  \"sampleId\": \"{{sampleId}}\",\n  \"analyteId\": \"{{analyteId}}\",\n  \"analysisMethodId\": \"{{analysisMethodId}}\",\n  \"criteriaId\": \"{{criteriaId}}\",\n  \"result\": \"0,5 UFC/g\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete test by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tests/{{testId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tests",
+                "{{testId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "description": "Reports reference existing samples and tests. Each selected test must belong to {{sampleId}}. Create captures reportId for subsequent requests.",
+      "item": [
+        {
+          "name": "Create report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) pm.collectionVariables.set(\"reportId\", response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reportNumber\": \"FE 3157 - 361\",\n  \"reportDate\": \"2024-08-05\",\n  \"status\": \"draft\",\n  \"sampleId\": \"{{sampleId}}\",\n  \"testIds\": [\n    \"{{testId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get reports",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get report by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/{{reportId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "{{reportId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update report by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/{{reportId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "{{reportId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reportNumber\": \"FE 3157 - 361 updated\",\n  \"reportDate\": \"2024-08-05\",\n  \"status\": \"draft\",\n  \"sampleId\": \"{{sampleId}}\",\n  \"testIds\": [\n    \"{{testId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete report by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/{{reportId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "{{reportId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Roles",
       "item": [
         {
           "name": "Create role",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test(\"Status code is 201\", function () {", "    pm.response.to.have.status(201);", "});", "const response = pm.response.json();", "if (response.id) pm.collectionVariables.set(\"roleId\", response.id);"]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const response = pm.response.json();",
+                  "if (response.id) pm.collectionVariables.set(\"roleId\", response.id);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Analyst\"\n}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{baseUrl}}/roles", "host": ["{{baseUrl}}"], "path": ["roles"]}
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Analyst\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles"
+              ]
+            }
           },
           "response": []
         },
         {
           "name": "Get role by ID",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test(\"Status code is 200\", function () {", "    pm.response.to.have.status(200);", "});"]}}],
-          "request": {"method": "GET", "header": [], "url": {"raw": "{{baseUrl}}/roles/{{roleId}}", "host": ["{{baseUrl}}"], "path": ["roles", "{{roleId}}"]}},
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roles/{{roleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles",
+                "{{roleId}}"
+              ]
+            }
+          },
           "response": []
         },
         {
           "name": "Delete role by ID",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test(\"Status code is 204\", function () {", "    pm.response.to.have.status(204);", "});"]}}],
-          "request": {"method": "DELETE", "header": [], "url": {"raw": "{{baseUrl}}/roles/{{roleId}}", "host": ["{{baseUrl}}"], "path": ["roles", "{{roleId}}"]}},
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roles/{{roleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles",
+                "{{roleId}}"
+              ]
+            }
+          },
           "response": []
         },
         {
           "name": "Update role by ID",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test(\"Status code is 200\", function () {", "    pm.response.to.have.status(200);", "});"]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Technical Director\"\n}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{baseUrl}}/roles/{{roleId}}", "host": ["{{baseUrl}}"], "path": ["roles", "{{roleId}}"]}
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Technical Director\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roles/{{roleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles",
+                "{{roleId}}"
+              ]
+            }
           },
           "response": []
         },
         {
           "name": "Get roles",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test(\"Status code is 200\", function () {", "    pm.response.to.have.status(200);", "});"]}}],
-          "request": {"method": "GET", "header": [], "url": {"raw": "{{baseUrl}}/roles", "host": ["{{baseUrl}}"], "path": ["roles"]}},
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roles"
+              ]
+            }
+          },
           "response": []
         }
       ]
@@ -1080,9 +1605,18 @@
                   "pm.test(\"Status code is 200\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "const response = pm.response.json();",
-                  "if (response.access_token) pm.collectionVariables.set(\"authToken\", response.access_token);",
-                  "if (response.refresh_token) pm.collectionVariables.set(\"refreshToken\", response.refresh_token);"
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test(\"Response contains bearer token pair\", function () {",
+                  "        pm.expect(response.access_token).to.be.a(\"string\").and.not.empty;",
+                  "        pm.expect(response.refresh_token).to.be.a(\"string\").and.not.empty;",
+                  "        pm.expect(response.token_type).to.eql(\"bearer\");",
+                  "    });",
+                  "    if (response.access_token && response.refresh_token) {",
+                  "        pm.collectionVariables.set(\"authToken\", response.access_token);",
+                  "        pm.collectionVariables.set(\"refreshToken\", response.refresh_token);",
+                  "    }",
+                  "}"
                 ]
               }
             }
@@ -1100,7 +1634,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"jane.doe\",\n  \"password\": \"change-me-123\"\n}",
+              "raw": "{\n  \"username\": \"{{authUsername}}\",\n  \"password\": \"{{authPassword}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1116,7 +1650,8 @@
                 "auth",
                 "login"
               ]
-            }
+            },
+            "description": "Authenticate an existing user and save access and refresh tokens in collection variables."
           },
           "response": []
         },
@@ -1131,27 +1666,65 @@
                   "pm.test(\"Status code is 200\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "const response = pm.response.json();",
-                  "if (response.access_token) pm.collectionVariables.set(\"authToken\", response.access_token);",
-                  "if (response.refresh_token) pm.collectionVariables.set(\"refreshToken\", response.refresh_token);"
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test(\"Response contains bearer token pair\", function () {",
+                  "        pm.expect(response.access_token).to.be.a(\"string\").and.not.empty;",
+                  "        pm.expect(response.refresh_token).to.be.a(\"string\").and.not.empty;",
+                  "        pm.expect(response.token_type).to.eql(\"bearer\");",
+                  "    });",
+                  "    pm.test(\"Refresh token is rotated\", function () {",
+                  "        pm.expect(response.refresh_token).not.to.eql(pm.variables.get(\"previousRefreshToken\"));",
+                  "    });",
+                  "    if (response.access_token && response.refresh_token) {",
+                  "        pm.collectionVariables.set(\"authToken\", response.access_token);",
+                  "        pm.collectionVariables.set(\"refreshToken\", response.refresh_token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"previousRefreshToken\", pm.variables.get(\"refreshToken\"));"
                 ]
               }
             }
           ],
           "request": {
-            "auth": {"type": "noauth"},
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}",
-              "options": {"raw": {"language": "json"}}
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/auth/refresh",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "refresh"]
-            }
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Exchange the current refresh token and save the rotated token pair. Run after Login."
           },
           "response": []
         },
@@ -1175,13 +1748,24 @@
             }
           ],
           "request": {
-            "auth": {"type": "noauth"},
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}",
-              "options": {"raw": {"language": "json"}}
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/auth/logout",
@@ -1192,53 +1776,435 @@
                 "auth",
                 "logout"
               ]
+            },
+            "description": "Revoke the current refresh token family and clear saved tokens on success. Access tokens already issued remain valid until expiration."
+          },
+          "response": []
+        },
+        {
+          "name": "Login with missing password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test(\"Error type\", function () {",
+                  "    pm.expect(pm.response.json().type).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
             }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{authUsername}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Expected failure case; does not change saved tokens."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh with invalid token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "pm.test(\"Error type\", function () {",
+                  "    pm.expect(pm.response.json().type).to.eql(\"AUTHENTICATION_FAILED\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"invalid-refresh-token\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Expected failure case; does not change saved tokens."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh with empty token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test(\"Error type\", function () {",
+                  "    pm.expect(pm.response.json().type).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Expected failure case; does not change saved tokens."
+          },
+          "response": []
+        },
+        {
+          "name": "Protected request without authentication",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "pm.test(\"Bearer authentication challenge\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"WWW-Authenticate\")).to.eql(\"Bearer\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports"
+              ]
+            },
+            "description": "Expected failure case; sends no valid access token."
+          },
+          "response": []
+        },
+        {
+          "name": "Protected request with invalid access token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "pm.test(\"Bearer authentication challenge\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"WWW-Authenticate\")).to.eql(\"Bearer\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "invalid-access-token",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports"
+              ]
+            },
+            "description": "Expected failure case; sends no valid access token."
           },
           "response": []
         }
-      ]
+      ],
+      "description": "Set authUsername and authPassword to an existing user, then run Login. Protected requests inherit bearer {{authToken}}. Refresh token rotates and saves both new tokens. Logout clears the saved tokens after 204. Negative cases do not change saved tokens."
     },
     {
       "name": "Users",
       "item": [
         {
           "name": "Create user",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test(\"Status code is 201\", function () {", "    pm.response.to.have.status(201);", "});", "const response = pm.response.json();", "if (response.id) pm.collectionVariables.set(\"userId\", response.id);"]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const response = pm.response.json();",
+                  "if (response.id) pm.collectionVariables.set(\"userId\", response.id);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Jane Doe\",\n  \"username\": \"jane.doe\",\n  \"password\": \"change-me-123\",\n  \"email\": \"jane.doe@example.com\",\n  \"roles\": [\"Analyst\"]\n}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"]}
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Doe\",\n  \"username\": \"jane.doe\",\n  \"password\": \"change-me-123\",\n  \"email\": \"jane.doe@example.com\",\n  \"roles\": [\"Analyst\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
           },
           "response": []
         },
         {
           "name": "Get user by ID",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test(\"Status code is 200\", function () {", "    pm.response.to.have.status(200);", "});"]}}],
-          "request": {"method": "GET", "header": [], "url": {"raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"]}},
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            }
+          },
           "response": []
         },
         {
           "name": "Delete user by ID",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test(\"Status code is 204\", function () {", "    pm.response.to.have.status(204);", "});"]}}],
-          "request": {"method": "DELETE", "header": [], "url": {"raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"]}},
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            }
+          },
           "response": []
         },
         {
           "name": "Update user by ID",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test(\"Status code is 200\", function () {", "    pm.response.to.have.status(200);", "});"]}}],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Jane Doe Updated\",\n  \"username\": \"jane.doe\",\n  \"password\": \"change-me-456\",\n  \"email\": \"jane.doe.updated@example.com\",\n  \"roles\": [\"Technical Director\"]\n}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"]}
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Doe Updated\",\n  \"username\": \"jane.doe\",\n  \"password\": \"change-me-456\",\n  \"email\": \"jane.doe.updated@example.com\",\n  \"roles\": [\"Technical Director\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            }
           },
           "response": []
         },
         {
           "name": "Get users",
-          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test(\"Status code is 200\", function () {", "    pm.response.to.have.status(200);", "});"]}}],
-          "request": {"method": "GET", "header": [], "url": {"raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"]}},
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
           "response": []
         }
       ]
@@ -1292,6 +2258,22 @@
     {
       "key": "refreshToken",
       "value": ""
+    },
+    {
+      "key": "testId",
+      "value": "025494db-6dd1-441e-bd83-70ef72e405bf"
+    },
+    {
+      "key": "reportId",
+      "value": "14860e3c-56df-4a31-96cc-100dc2a8f749"
+    },
+    {
+      "key": "authUsername",
+      "value": "jane.doe"
+    },
+    {
+      "key": "authPassword",
+      "value": "change-me-123"
     }
   ]
 }

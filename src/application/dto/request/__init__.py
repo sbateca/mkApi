@@ -65,3 +65,15 @@ __all__ = [
     "UpdateClientRequestDto",
     "DeleteClientRequestDto",
 ]
+
+from application.dto.request.create_report_request_dto import ReportRequestDto
+from application.dto.request.delete_report_request_dto import DeleteReportRequestDto
+from application.dto.request.get_report_by_id_request_dto import GetReportByIdRequestDto
+from application.dto.request.update_report_request_dto import UpdateReportRequestDto
+
+__all__ += [
+    "ReportRequestDto",
+    "GetReportByIdRequestDto",
+    "UpdateReportRequestDto",
+    "DeleteReportRequestDto",
+]

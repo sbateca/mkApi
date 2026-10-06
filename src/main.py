@@ -22,6 +22,7 @@ from domain.exception.criteria_exception import (
     CriteriaNotFoundError,
 )
 from domain.exception.domain_exception import DomainError
+from domain.exception.report_exception import ReportNotFoundError
 from domain.exception.role_exception import RoleAlreadyExistsError, RoleNotFoundError
 from domain.exception.sample_exception import (
     SampleAlreadyExistsError,
@@ -59,6 +60,7 @@ from infrastructure.input.rest.exception.exception_handler import (
     criteria_already_exists_exception_handler,
     criteria_not_found_exception_handler,
     domain_exception_handler,
+    report_not_found_exception_handler,
     request_validation_exception_handler,
     role_already_exists_exception_handler,
     role_not_found_exception_handler,
@@ -73,6 +75,7 @@ from infrastructure.input.rest.exception.exception_handler import (
     user_already_exists_exception_handler,
     user_not_found_exception_handler,
 )
+from infrastructure.input.rest.report_controller import router as report_router
 from infrastructure.input.rest.role_controller import router as role_router
 from infrastructure.input.rest.sample_controller import router as sample_router
 from infrastructure.input.rest.sample_type_controller import (
@@ -172,3 +175,6 @@ app.add_exception_handler(UserNotFoundError, user_not_found_exception_handler)
 app.add_exception_handler(AuthenticationError, authentication_exception_handler)
 app.add_exception_handler(DomainError, domain_exception_handler)
 app.add_exception_handler(Exception, unexpected_exception_handler)
+
+app.include_router(report_router, dependencies=authenticated)
+app.add_exception_handler(ReportNotFoundError, report_not_found_exception_handler)

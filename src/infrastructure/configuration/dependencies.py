@@ -17,12 +17,14 @@ from application.handler.impl.analyte_handler import AnalyteHandler
 from application.handler.impl.authentication_handler import AuthenticationHandler
 from application.handler.impl.client_handler import ClientHandler
 from application.handler.impl.criteria_handler import CriteriaHandler
+from application.handler.impl.report_handler import ReportHandler
 from application.handler.impl.role_handler import RoleHandler
 from application.handler.impl.sample_handler import SampleHandler
 from application.handler.impl.sample_type_handler import SampleTypeHandler
 from application.handler.impl.test_handler import TestHandler
 from application.handler.impl.test_type_handler import TestTypeHandler
 from application.handler.impl.user_handler import UserHandler
+from application.handler.report_handler_interface import ReportHandlerInterface
 from application.handler.role_handler_interface import RoleHandlerInterface
 from application.handler.sample_handler_interface import SampleHandlerInterface
 from application.handler.sample_type_handler_interface import SampleTypeHandlerInterface
@@ -34,6 +36,7 @@ from application.mapper.analyte_mapper import AnalyteMapper
 from application.mapper.client_mapper import ClientMapper
 from application.mapper.criteria_mapper import CriteriaMapper
 from application.mapper.login_mapper import LoginMapper
+from application.mapper.report_mapper import ReportMapper
 from application.mapper.role_mapper import RoleMapper
 from application.mapper.sample_mapper import SampleMapper
 from application.mapper.sample_type_mapper import SampleTypeMapper
@@ -44,6 +47,7 @@ from domain.api.analysis_method_service_port import AnalysisMethodServicePort
 from domain.api.analyte_service_port import AnalyteServicePort
 from domain.api.client_service_port import ClientServicePort
 from domain.api.criteria_service_port import CriteriaServicePort
+from domain.api.report_service_port import ReportServicePort
 from domain.api.role_service_port import RoleServicePort
 from domain.api.sample_service_port import SampleServicePort
 from domain.api.sample_type_service_port import SampleTypeServicePort
@@ -58,6 +62,7 @@ from domain.spi.criteria_persistence_port import CriteriaPersistencePort
 from domain.spi.password_hasher_port import PasswordHasherPort
 from domain.spi.refresh_token_persistence_port import RefreshTokenPersistencePort
 from domain.spi.refresh_token_port import RefreshTokenPort
+from domain.spi.report_persistence_port import ReportPersistencePort
 from domain.spi.role_persistence_port import RolePersistencePort
 from domain.spi.sample_persistence_port import SamplePersistencePort
 from domain.spi.sample_type_persistence_port import SampleTypePersistencePort
@@ -70,6 +75,7 @@ from domain.usecase.analyte_use_case import AnalyteUseCase
 from domain.usecase.authentication_use_case import AuthenticationUseCase
 from domain.usecase.client_use_case import ClientUseCase
 from domain.usecase.criteria_use_case import CriteriaUseCase
+from domain.usecase.report_use_case import ReportUseCase
 from domain.usecase.role_usecase import RoleUseCase
 from domain.usecase.sample_type_use_case import SampleTypeUseCase
 from domain.usecase.sample_use_case import SampleUseCase
@@ -94,6 +100,9 @@ from infrastructure.output.postgresql.adapter.criteria_persistence_adapter impor
 )
 from infrastructure.output.postgresql.adapter.refresh_token_persistence_adapter import (
     RefreshTokenPersistenceAdapter,
+)
+from infrastructure.output.postgresql.adapter.report_persistence_adapter import (
+    ReportPersistenceAdapter,
 )
 from infrastructure.output.postgresql.adapter.role_persistence_adapter import (
     RolePersistenceAdapter,
@@ -126,6 +135,9 @@ from infrastructure.output.postgresql.mapper.client_entity_mapper import (
 from infrastructure.output.postgresql.mapper.criteria_entity_mapper import (
     CriteriaEntityMapper,
 )
+from infrastructure.output.postgresql.mapper.report_entity_mapper import (
+    ReportEntityMapper,
+)
 from infrastructure.output.postgresql.mapper.role_entity_mapper import RoleEntityMapper
 from infrastructure.output.postgresql.mapper.sample_entity_mapper import (
     SampleEntityMapper,
@@ -154,6 +166,9 @@ from infrastructure.output.postgresql.repository.criteria_repository import (
 )
 from infrastructure.output.postgresql.repository.refresh_token_repository import (
     RefreshTokenPostgreSQLRepository,
+)
+from infrastructure.output.postgresql.repository.report_repository import (
+    ReportPostgreSQLRepository,
 )
 from infrastructure.output.postgresql.repository.role_repository import (
     RolePostgreSQLRepository,
@@ -244,6 +259,36 @@ def get_password_hasher() -> PasswordHasherPort:
     return BcryptPasswordHasher()
 
 
+def get_client_mapper() -> ClientMapper:
+    return ClientMapper()
+
+
+def get_client_entity_mapper() -> ClientEntityMapper:
+    return ClientEntityMapper()
+
+
+def get_client_repository(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> ClientPostgreSQLRepository:
+    return ClientPostgreSQLRepository(session)
+
+
+def get_client_persistence_adapter(
+    client_repository: Annotated[
+        ClientPostgreSQLRepository,
+        Depends(get_client_repository),
+    ],
+    client_entity_mapper: Annotated[
+        ClientEntityMapper,
+        Depends(get_client_entity_mapper),
+    ],
+) -> ClientPersistencePort:
+    return ClientPersistenceAdapter(
+        client_repository=client_repository,
+        client_entity_mapper=client_entity_mapper,
+    )
+
+
 def get_jwt_adapter() -> TokenPort:
     settings = get_settings()
     return JwtAdapter(
@@ -279,11 +324,15 @@ def get_user_usecase(
         RolePersistencePort, Depends(get_role_persistence_adapter)
     ],
     password_hasher: Annotated[PasswordHasherPort, Depends(get_password_hasher)],
+    client_persistence_port: Annotated[
+        ClientPersistencePort, Depends(get_client_persistence_adapter)
+    ],
 ) -> UserServicePort:
     return UserUseCase(
         user_persistence_port,
         role_persistence_port,
         password_hasher,
+        client_persistence_port,
         LoggerAdapter("mkapi.user"),
     )
 
@@ -504,36 +553,6 @@ def get_analysis_method_handler(
     return AnalysisMethodHandler(mapper, service_port)
 
 
-def get_client_mapper() -> ClientMapper:
-    return ClientMapper()
-
-
-def get_client_entity_mapper() -> ClientEntityMapper:
-    return ClientEntityMapper()
-
-
-def get_client_repository(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
-) -> ClientPostgreSQLRepository:
-    return ClientPostgreSQLRepository(session)
-
-
-def get_client_persistence_adapter(
-    client_repository: Annotated[
-        ClientPostgreSQLRepository,
-        Depends(get_client_repository),
-    ],
-    client_entity_mapper: Annotated[
-        ClientEntityMapper,
-        Depends(get_client_entity_mapper),
-    ],
-) -> ClientPersistencePort:
-    return ClientPersistenceAdapter(
-        client_repository=client_repository,
-        client_entity_mapper=client_entity_mapper,
-    )
-
-
 def get_client_usecase(
     client_persistence_port: Annotated[
         ClientPersistencePort,
@@ -722,3 +741,42 @@ def get_authentication_handler(
     mapper: Annotated[LoginMapper, Depends(LoginMapper)],
 ) -> AuthenticationHandlerInterface:
     return AuthenticationHandler(login_mapper=mapper, authentication_service=service)
+
+
+def get_report_mapper() -> ReportMapper:
+    return ReportMapper()
+
+
+def get_report_entity_mapper(
+    sample_mapper: Annotated[SampleEntityMapper, Depends(get_sample_entity_mapper)],
+    test_mapper: Annotated[TestEntityMapper, Depends(get_test_entity_mapper)],
+) -> ReportEntityMapper:
+    return ReportEntityMapper(sample_mapper, test_mapper)
+
+
+def get_report_repository(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> ReportPostgreSQLRepository:
+    return ReportPostgreSQLRepository(session)
+
+
+def get_report_persistence_adapter(
+    repository: Annotated[ReportPostgreSQLRepository, Depends(get_report_repository)],
+    mapper: Annotated[ReportEntityMapper, Depends(get_report_entity_mapper)],
+) -> ReportPersistencePort:
+    return ReportPersistenceAdapter(repository, mapper)
+
+
+def get_report_usecase(
+    reports: Annotated[ReportPersistencePort, Depends(get_report_persistence_adapter)],
+    samples: Annotated[SamplePersistencePort, Depends(get_sample_persistence_adapter)],
+    tests: Annotated[TestPersistencePort, Depends(get_test_persistence_adapter)],
+) -> ReportServicePort:
+    return ReportUseCase(reports, samples, tests, LoggerAdapter("mkapi.report"))
+
+
+def get_report_handler(
+    mapper: Annotated[ReportMapper, Depends(get_report_mapper)],
+    service: Annotated[ReportServicePort, Depends(get_report_usecase)],
+) -> ReportHandlerInterface:
+    return ReportHandler(mapper, service)

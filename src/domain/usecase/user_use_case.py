@@ -1,12 +1,19 @@
 from uuid import UUID, uuid4
 
 from domain.api.user_service_port import UserServicePort
-from domain.exception.user_exception import UserAlreadyExistsError, UserNotFoundError
+from domain.exception.client_exception import ClientNotFoundError
+from domain.exception.user_exception import (
+    UserAlreadyExistsError,
+    UserClientRequiredError,
+    UserNotFoundError,
+)
 from domain.model.user import User
+from domain.spi.client_persistence_port import ClientPersistencePort
 from domain.spi.logger_port import LoggerPort, NullLogger
 from domain.spi.password_hasher_port import PasswordHasherPort
 from domain.spi.role_persistence_port import RolePersistencePort
 from domain.spi.user_persistence_port import UserPersistencePort
+from domain.util.constants import UserRole
 
 
 class UserUseCase(UserServicePort):
@@ -15,11 +22,13 @@ class UserUseCase(UserServicePort):
         user_persistence_port: UserPersistencePort,
         role_persistence_port: RolePersistencePort,
         password_hasher: PasswordHasherPort,
+        client_persistence_port: ClientPersistencePort,
         logger: LoggerPort | None = None,
     ):
         self.user_persistence_port = user_persistence_port
         self.role_persistence_port = role_persistence_port
         self.password_hasher = password_hasher
+        self.client_persistence_port = client_persistence_port
         self.logger = logger or NullLogger()
 
     async def create_user(self, user: User) -> User:
@@ -30,6 +39,7 @@ class UserUseCase(UserServicePort):
             [role.name.value for role in user.roles]
         )
         user.roles = roles
+        await self.__validate_client_relationship(user)
         user.password = self.password_hasher.hash(user.password)
         if not user.id:
             user.id = uuid4()
@@ -65,6 +75,7 @@ class UserUseCase(UserServicePort):
             [role.name.value for role in updated_user.roles]
         )
         updated_user.roles = roles
+        await self.__validate_client_relationship(updated_user)
         return await self.user_persistence_port.update(user_id, updated_user)
 
     async def delete_user(self, user_id: str) -> None:
@@ -90,3 +101,14 @@ class UserUseCase(UserServicePort):
         user_with_username = await self.user_persistence_port.find_by_username(username)
         if user_with_username and user_with_username.id != current_user_id:
             raise UserAlreadyExistsError()
+
+    async def __validate_client_relationship(self, user: User) -> None:
+        has_client_role = any(role.name == UserRole.CLIENT for role in user.roles)
+        if has_client_role and user.client_id is None:
+            raise UserClientRequiredError()
+        if user.client_id is not None:
+            client = await self.client_persistence_port.get_client_by_id(
+                str(user.client_id)
+            )
+            if client is None:
+                raise ClientNotFoundError()

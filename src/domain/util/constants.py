@@ -28,11 +28,13 @@ SAMPLE_ALREADY_EXISTS_ERROR_MESSAGE = "The sample already exists."
 SAMPLE_NOT_FOUND_ERROR_MESSAGE = "The sample was not found."
 
 TEST_NOT_FOUND_ERROR_MESSAGE = "The test was not found."
+TEST_IDS_MUST_BE_UNIQUE_ERROR_MESSAGE = "Test IDs must be unique."
 
 ROLE_NOT_FOUND_ERROR_MESSAGE = "The role was not found."
 ROLE_ALREADY_EXISTS_ERROR_MESSAGE = "The role already exists."
 USER_NOT_FOUND_ERROR_MESSAGE = "The user was not found."
 USER_ALREADY_EXISTS_ERROR_MESSAGE = "The user already exists."
+USER_CLIENT_REQUIRED_ERROR_MESSAGE = "A user with the Client role requires a client."
 AUTHENTICATION_FAILED_ERROR_MESSAGE = (
     "Authentication failed. Invalid username or password."
 )
@@ -44,3 +46,9 @@ class UserRole(Enum):
     ANALYST = "Analyst"
     RECEPTIONIST = "Receptionist"
     CLIENT = "Client"
+
+
+class ReportStatus(Enum):
+    DRAFT = "Draft"
+    APPROVED = "Approved"
+    ISSUED = "Issued"

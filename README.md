@@ -308,3 +308,35 @@ make clean
 - Add output adapters under `infrastructure/output`.
 - Depend on domain ports from the outside layers, not on concrete adapters.
 - Wire concrete implementations in `infrastructure/configuration/dependencies.py`.
+
+
+### Reports
+
+Authenticated Report CRUD follows the existing API conventions:
+
+- `POST /reports` creates a report (201).
+- `GET /reports` lists reports; `GET /reports/{report_id}` retrieves one (200).
+- `PUT /reports/{report_id}` replaces report fields and selected test links (200).
+- `DELETE /reports/{report_id}` removes the report and its links (204), preserving samples and tests.
+
+Create and update accept existing relation IDs:
+
+```json
+{
+  "reportNumber": "FE 3157 - 361",
+  "reportDate": "2024-08-05",
+  "status": "draft",
+  "sampleId": "ce59c2ba-c7f2-4df5-a8db-7dd74b7381a9",
+  "testIds": ["025494db-6dd1-441e-bd83-70ef72e405bf"]
+}
+```
+
+Responses include `id`, `reportNumber`, `reportDate`, `status`, the expanded
+`sample` (including sample type and client), and expanded `tests` (including
+analyte/test type, analysis method, criteria, and result). Test order follows
+`testIds`. Each test must exist and belong to the selected sample; duplicate
+IDs are rejected. An empty test list is allowed. Status is a nonblank string
+(up to 50 characters); no workflow transitions are imposed. Reports reference
+live sample/test data, so subsequent changes to those records appear in reports.
+
+Apply migration `6a4d8c2e1f90` with `make migrate` before using these routes.
