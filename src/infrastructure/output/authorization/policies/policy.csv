@@ -1,0 +1,60 @@
+p, Admin, *, *, all
+
+p, Technical Director, sample_type, create, all
+p, Technical Director, sample_type, read, all
+p, Technical Director, sample_type, update, all
+p, Technical Director, sample_type, delete, all
+p, Technical Director, test_type, create, all
+p, Technical Director, test_type, read, all
+p, Technical Director, test_type, update, all
+p, Technical Director, test_type, delete, all
+p, Technical Director, analyte, create, all
+p, Technical Director, analyte, read, all
+p, Technical Director, analyte, update, all
+p, Technical Director, analyte, delete, all
+p, Technical Director, analysis_method, create, all
+p, Technical Director, analysis_method, read, all
+p, Technical Director, analysis_method, update, all
+p, Technical Director, analysis_method, delete, all
+p, Technical Director, criteria, create, all
+p, Technical Director, criteria, read, all
+p, Technical Director, criteria, update, all
+p, Technical Director, criteria, delete, all
+p, Technical Director, sample, create, all
+p, Technical Director, sample, read, all
+p, Technical Director, sample, update, all
+p, Technical Director, sample, delete, all
+p, Technical Director, test, create, all
+p, Technical Director, test, read, all
+p, Technical Director, test, update, all
+p, Technical Director, test, delete, all
+p, Technical Director, report, create, all
+p, Technical Director, report, read, all
+p, Technical Director, report, update, all
+p, Technical Director, report, delete, all
+p, Technical Director, report, approve, all
+
+p, Analyst, sample_type, read, all
+p, Analyst, test_type, read, all
+p, Analyst, analyte, read, all
+p, Analyst, analysis_method, read, all
+p, Analyst, criteria, read, all
+p, Analyst, sample, read, all
+p, Analyst, sample, update, all
+p, Analyst, test, create, all
+p, Analyst, test, read, all
+p, Analyst, test, update, all
+p, Analyst, report, create, all
+p, Analyst, report, read, all
+p, Analyst, report, update, all
+
+p, Receptionist, client, create, all
+p, Receptionist, client, read, all
+p, Receptionist, sample_type, read, all
+p, Receptionist, sample, create, all
+p, Receptionist, sample, read, all
+
+p, Client, client, read, own
+p, Client, sample, read, own
+p, Client, test, read, own
+p, Client, report, read, own

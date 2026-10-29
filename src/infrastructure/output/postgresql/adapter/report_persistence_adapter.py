@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from domain.model.report import Report
 from domain.spi.report_persistence_port import ReportPersistencePort
 from infrastructure.output.postgresql.mapper.report_entity_mapper import (
@@ -25,6 +27,10 @@ class ReportPersistenceAdapter(ReportPersistencePort):
 
     async def get_reports(self) -> list[Report]:
         return self.entity_mapper.to_domain_list(await self.repository.get_reports())
+
+    async def get_reports_by_client_id(self, client_id: UUID) -> list[Report]:
+        entities = await self.repository.get_reports_by_client_id(client_id)
+        return self.entity_mapper.to_domain_list(entities)
 
     async def get_report_by_id(self, report_id: str) -> Report | None:
         entity = await self.repository.get_report_by_id(report_id)

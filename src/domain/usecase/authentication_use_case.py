@@ -52,7 +52,7 @@ class AuthenticationUseCase(AuthenticationServicePort):
             raise AuthenticationError()
 
         roles = [role.name for role in user.roles]
-        access_token = self.token_port.create_token(user.id, roles)
+        access_token = self.token_port.create_token(user.id, roles, user.client_id)
         return AuthTokens(access_token, new_refresh_token)
 
     async def logout(self, refresh_token: str) -> None:
@@ -62,7 +62,7 @@ class AuthenticationUseCase(AuthenticationServicePort):
 
     async def _issue_tokens(self, user) -> AuthTokens:
         roles = [role.name for role in user.roles]
-        access_token = self.token_port.create_token(user.id, roles)
+        access_token = self.token_port.create_token(user.id, roles, user.client_id)
         refresh_token = self.refresh_token_port.generate()
         await self.refresh_token_persistence_port.save(
             self.refresh_token_port.digest(refresh_token),

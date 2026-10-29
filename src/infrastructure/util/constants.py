@@ -93,6 +93,7 @@ class TokenError(Enum):
 class TokenField(Enum):
     SUB = "sub"
     ROLES = "roles"
+    CLIENT_ID = "client_id"
     IAT = "iat"
     EXP = "exp"
 

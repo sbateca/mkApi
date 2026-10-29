@@ -22,6 +22,7 @@ dependencies = [
     "opentelemetry-instrumentation-logging (>=0.63b1,<0.64)",
     "bcrypt (>=4.3,<6.0)",
     "python-jose (>=3.5.0,<4.0.0)",
+    "casbin (>=1.43.0,<2.0.0)",
 ]
 
 

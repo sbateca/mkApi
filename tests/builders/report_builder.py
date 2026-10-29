@@ -1,7 +1,8 @@
 from datetime import date
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
+from domain.model.authorization_scope import AuthorizationScope
 from domain.model.report import Report
 from domain.usecase.report_use_case import ReportUseCase
 from tests.builders.report_sample_builder import (
@@ -34,9 +35,20 @@ def report():
 
 
 def service():
-    reports, samples, tests = AsyncMock(), AsyncMock(), AsyncMock()
+    reports, samples, tests, authorization = (
+        AsyncMock(),
+        AsyncMock(),
+        AsyncMock(),
+        Mock(),
+    )
+    authorization.get_scope.return_value = AuthorizationScope.ALL
     samples.get_sample_by_id.return_value = domain_sample()
     tests.get_test_by_id.return_value = domain_test()
     reports.save_report.side_effect = lambda item: item
     reports.update_report.side_effect = lambda item: item
-    return ReportUseCase(reports, samples, tests), reports, samples, tests
+    return (
+        ReportUseCase(reports, samples, tests, authorization),
+        reports,
+        samples,
+        tests,
+    )

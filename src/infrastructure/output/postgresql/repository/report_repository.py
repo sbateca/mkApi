@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -38,6 +40,15 @@ class ReportPostgreSQLRepository:
     async def get_reports(self) -> list[ReportEntity]:
         result = await self.session.execute(
             self._query().order_by(ReportEntity.report_date, ReportEntity.id)
+        )
+        return result.scalars().all()
+
+    async def get_reports_by_client_id(self, client_id: UUID) -> list[ReportEntity]:
+        result = await self.session.execute(
+            self._query()
+            .join(ReportEntity.sample)
+            .where(SampleEntity.client_id == client_id)
+            .order_by(ReportEntity.report_date, ReportEntity.id)
         )
         return result.scalars().all()
 

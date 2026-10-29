@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 
+from domain.model.authenticated_user import AuthenticatedUser
 from domain.model.report import Report
 
 
 class ReportServicePort(ABC):
     @abstractmethod
-    async def get_reports(self) -> list[Report]:
+    async def get_reports(self, actor: AuthenticatedUser) -> list[Report]:
         pass
 
     @abstractmethod

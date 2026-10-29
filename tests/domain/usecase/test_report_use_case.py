@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -10,6 +10,9 @@ from domain.exception.report_exception import (
 )
 from domain.exception.sample_exception import SampleNotFoundError
 from domain.exception.test_exception import TestNotFoundError as MissingTestError
+from domain.model.authenticated_user import AuthenticatedUser
+from domain.model.authorization_scope import AuthorizationScope
+from domain.util.constants import UserRole
 from tests.builders.report_builder import body, report, service
 from tests.builders.report_sample_builder import (
     domain_sample,
@@ -26,7 +29,8 @@ async def test_report_crud_resolves_relations_and_preserves_identity():
     assert created.tests == [domain_test()]
     persistence.get_report_by_id.return_value = created
     persistence.get_reports.return_value = [created]
-    assert await usecase.get_reports() == [created]
+    actor = AuthenticatedUser(uuid4(), frozenset({UserRole.ADMIN}))
+    assert await usecase.get_reports(actor) == [created]
     changed = report()
     changed.report_number = "Updated"
     changed.tests = []
@@ -106,3 +110,17 @@ async def test_missing_report_status_update_does_not_write():
     with pytest.raises(ReportNotFoundError):
         await usecase.set_report_status(str(uuid4()), "Approved")
     persistence.update_report.assert_not_awaited()
+
+
+async def test_client_report_listing_is_filtered_in_persistence():
+    usecase, persistence, _, _ = service()
+    client_id = UUID("63cc2808-29d7-4c84-aa9f-feca7792a893")
+    actor = AuthenticatedUser(uuid4(), frozenset({UserRole.CLIENT}), client_id)
+    usecase.authorization_port.get_scope.return_value = AuthorizationScope.OWN
+    persistence.get_reports_by_client_id.return_value = [report()]
+
+    result = await usecase.get_reports(actor)
+
+    assert result == persistence.get_reports_by_client_id.return_value
+    persistence.get_reports_by_client_id.assert_awaited_once_with(client_id)
+    persistence.get_reports.assert_not_awaited()

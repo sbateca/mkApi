@@ -262,6 +262,23 @@ token to its replacement. Reuse of an already rotated token is treated as a
 possible theft and revokes the entire family; logout also revokes that session's
 family without closing sessions created by other logins.
 
+## Authorization
+
+Authorization is enforced locally with Casbin. The domain exposes an
+`AuthorizationPort`; the Casbin implementation and versioned policy files live
+under `src/infrastructure/output/authorization`. Authentication is required for
+every business router, and each endpoint declares its resource and action.
+
+Permissions are denied by default. Administrators have full access; technical
+directors manage laboratory resources and approve reports; analysts read and
+update samples, register and update tests, and create or update reports;
+receptionists register clients and samples. Client users can only read the
+client, samples, tests, and reports associated with their `client_id`.
+
+The `client_id` relationship is embedded in newly issued access tokens. Users
+must log in again after deployment so tokens issued before this change do not
+lack the ownership context.
+
 Rollback the latest migration:
 
 ```sh
@@ -317,6 +334,7 @@ Authenticated Report CRUD follows the existing API conventions:
 - `POST /reports` creates a report (201).
 - `GET /reports` lists reports; `GET /reports/{report_id}` retrieves one (200).
 - `PUT /reports/{report_id}` replaces report fields and selected test links (200).
+- `PATCH /reports/{report_id}/approve` approves a report (200; Admin or Technical Director).
 - `DELETE /reports/{report_id}` removes the report and its links (204), preserving samples and tests.
 
 Create and update accept existing relation IDs:

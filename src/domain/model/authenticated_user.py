@@ -8,3 +8,4 @@ from domain.util.constants import UserRole
 class AuthenticatedUser:
     id: UUID
     roles: frozenset[UserRole]
+    client_id: UUID | None = None

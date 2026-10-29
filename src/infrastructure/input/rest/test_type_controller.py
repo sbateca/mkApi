@@ -13,7 +13,10 @@ from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
 from application.handler.test_type_handler_interface import TestTypeHandlerInterface
+from domain.model.authorization_action import AuthorizationAction
+from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_test_type_handler
+from infrastructure.input.rest.security.authorization import require_permission
 
 router = APIRouter(prefix="/test-types", tags=["Test Types"])
 
@@ -69,21 +72,42 @@ DeleteTestTypeRequestDependency = Annotated[
 ]
 
 
-@router.post("", response_model=TestTypeResponseDto, status_code=201)
+@router.post(
+    "",
+    response_model=TestTypeResponseDto,
+    status_code=201,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.CREATE, ResourceType.TEST_TYPE))
+    ],
+)
 async def create_test_type(
     request: TestTypeRequestDto, handler: TestTypeHandlerDependency
 ) -> TestTypeResponseDto:
     return await handler.create_test_type(request)
 
 
-@router.get("", response_model=list[TestTypeResponseDto], status_code=200)
+@router.get(
+    "",
+    response_model=list[TestTypeResponseDto],
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.READ, ResourceType.TEST_TYPE))
+    ],
+)
 async def get_test_types(
     handler: TestTypeHandlerDependency,
 ) -> list[TestTypeResponseDto]:
     return await handler.get_test_types()
 
 
-@router.get("/{test_type_id}", response_model=TestTypeResponseDto, status_code=200)
+@router.get(
+    "/{test_type_id}",
+    response_model=TestTypeResponseDto,
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.READ, ResourceType.TEST_TYPE))
+    ],
+)
 async def get_test_type_by_id(
     request: GetTestTypeByIdRequestDependency,
     handler: TestTypeHandlerDependency,
@@ -91,7 +115,14 @@ async def get_test_type_by_id(
     return await handler.get_test_type_by_id(request)
 
 
-@router.put("/{test_type_id}", response_model=TestTypeResponseDto, status_code=200)
+@router.put(
+    "/{test_type_id}",
+    response_model=TestTypeResponseDto,
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.UPDATE, ResourceType.TEST_TYPE))
+    ],
+)
 async def update_test_type(
     request: UpdateTestTypeRequestDependency,
     handler: TestTypeHandlerDependency,
@@ -99,7 +130,13 @@ async def update_test_type(
     return await handler.update_test_type(request)
 
 
-@router.delete("/{test_type_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{test_type_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.DELETE, ResourceType.TEST_TYPE))
+    ],
+)
 async def delete_test_type(
     request: DeleteTestTypeRequestDependency,
     handler: TestTypeHandlerDependency,

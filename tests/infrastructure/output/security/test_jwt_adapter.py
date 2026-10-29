@@ -21,6 +21,18 @@ def test_create_and_decode_token_round_trip():
     assert authenticated_user.roles == frozenset({UserRole.ADMIN})
 
 
+def test_token_preserves_client_relationship():
+    adapter = JwtAdapter("test-secret", "HS256", 60)
+    user_id = UUID("a43b10d8-3ba7-4e2a-a510-baf8ac45dc1e")
+    client_id = UUID("63cc2808-29d7-4c84-aa9f-feca7792a893")
+
+    authenticated_user = adapter.decode_token(
+        adapter.create_token(user_id, [UserRole.CLIENT], client_id)
+    )
+
+    assert authenticated_user.client_id == client_id
+
+
 def test_decode_token_uses_expired_token_error_constant():
     adapter = JwtAdapter("test-secret", "HS256", 60)
     token = jwt.encode(

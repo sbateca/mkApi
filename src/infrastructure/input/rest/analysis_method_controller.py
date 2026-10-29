@@ -15,7 +15,10 @@ from application.exception.request_validation_error import (
 from application.handler.analysis_method_handler_interface import (
     AnalysisMethodHandlerInterface,
 )
+from domain.model.authorization_action import AuthorizationAction
+from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_analysis_method_handler
+from infrastructure.input.rest.security.authorization import require_permission
 
 router = APIRouter(prefix="/analysis-methods", tags=["Analysis Methods"])
 
@@ -78,7 +81,16 @@ DeleteAnalysisMethodRequestDependency = Annotated[
 ]
 
 
-@router.post("", response_model=AnalysisMethodResponseDto, status_code=201)
+@router.post(
+    "",
+    response_model=AnalysisMethodResponseDto,
+    status_code=201,
+    dependencies=[
+        Depends(
+            require_permission(AuthorizationAction.CREATE, ResourceType.ANALYSIS_METHOD)
+        )
+    ],
+)
 async def create_analysis_method(
     request: AnalysisMethodRequestDto,
     handler: AnalysisMethodHandlerDependency,
@@ -86,7 +98,16 @@ async def create_analysis_method(
     return await handler.create_analysis_method(request)
 
 
-@router.get("", response_model=list[AnalysisMethodResponseDto], status_code=200)
+@router.get(
+    "",
+    response_model=list[AnalysisMethodResponseDto],
+    status_code=200,
+    dependencies=[
+        Depends(
+            require_permission(AuthorizationAction.READ, ResourceType.ANALYSIS_METHOD)
+        )
+    ],
+)
 async def get_analysis_methods(
     handler: AnalysisMethodHandlerDependency,
 ) -> list[AnalysisMethodResponseDto]:
@@ -97,6 +118,11 @@ async def get_analysis_methods(
     "/{analysis_method_id}",
     response_model=AnalysisMethodResponseDto,
     status_code=200,
+    dependencies=[
+        Depends(
+            require_permission(AuthorizationAction.READ, ResourceType.ANALYSIS_METHOD)
+        )
+    ],
 )
 async def get_analysis_method_by_id(
     request: GetAnalysisMethodByIdRequestDependency,
@@ -109,6 +135,11 @@ async def get_analysis_method_by_id(
     "/{analysis_method_id}",
     response_model=AnalysisMethodResponseDto,
     status_code=200,
+    dependencies=[
+        Depends(
+            require_permission(AuthorizationAction.UPDATE, ResourceType.ANALYSIS_METHOD)
+        )
+    ],
 )
 async def update_analysis_method(
     request: UpdateAnalysisMethodRequestDependency,
@@ -117,7 +148,15 @@ async def update_analysis_method(
     return await handler.update_analysis_method(request)
 
 
-@router.delete("/{analysis_method_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{analysis_method_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(
+            require_permission(AuthorizationAction.DELETE, ResourceType.ANALYSIS_METHOD)
+        )
+    ],
+)
 async def delete_analysis_method(
     request: DeleteAnalysisMethodRequestDependency,
     handler: AnalysisMethodHandlerDependency,

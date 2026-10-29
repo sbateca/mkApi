@@ -1,3 +1,5 @@
+from functools import lru_cache
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends
@@ -57,6 +59,7 @@ from domain.api.user_service_port import UserServicePort
 from domain.spi.analysis_method_persistence_port import AnalysisMethodPersistencePort
 from domain.spi.analyte_persistence_port import AnalytePersistencePort
 from domain.spi.authentication_service_port import AuthenticationServicePort
+from domain.spi.authorization_port import AuthorizationPort
 from domain.spi.client_persistence_port import ClientPersistencePort
 from domain.spi.criteria_persistence_port import CriteriaPersistencePort
 from domain.spi.password_hasher_port import PasswordHasherPort
@@ -83,6 +86,9 @@ from domain.usecase.test_type_use_case import TestTypeUseCase
 from domain.usecase.test_use_case import TestUseCase
 from domain.usecase.user_use_case import UserUseCase
 from infrastructure.configuration.settings import get_settings
+from infrastructure.output.authorization.casbin_authorization_adapter import (
+    CasbinAuthorizationAdapter,
+)
 from infrastructure.output.observability.logger_adapter import (
     LoggerAdapter,
 )
@@ -191,6 +197,17 @@ from infrastructure.output.postgresql.repository.user_repository import (
 from infrastructure.output.security.bcrypt_password_hasher import BcryptPasswordHasher
 from infrastructure.output.security.jwt_adapter import JwtAdapter
 from infrastructure.output.security.refresh_token_adapter import RefreshTokenAdapter
+
+
+@lru_cache
+def get_authorization_port() -> AuthorizationPort:
+    policy_directory = (
+        Path(__file__).resolve().parents[1] / "output" / "authorization" / "policies"
+    )
+    return CasbinAuthorizationAdapter(
+        str(policy_directory / "model.conf"),
+        str(policy_directory / "policy.csv"),
+    )
 
 
 def get_criteria_mapper() -> CriteriaMapper:
@@ -771,8 +788,15 @@ def get_report_usecase(
     reports: Annotated[ReportPersistencePort, Depends(get_report_persistence_adapter)],
     samples: Annotated[SamplePersistencePort, Depends(get_sample_persistence_adapter)],
     tests: Annotated[TestPersistencePort, Depends(get_test_persistence_adapter)],
+    authorization: Annotated[AuthorizationPort, Depends(get_authorization_port)],
 ) -> ReportServicePort:
-    return ReportUseCase(reports, samples, tests, LoggerAdapter("mkapi.report"))
+    return ReportUseCase(
+        reports,
+        samples,
+        tests,
+        authorization,
+        LoggerAdapter("mkapi.report"),
+    )
 
 
 def get_report_handler(

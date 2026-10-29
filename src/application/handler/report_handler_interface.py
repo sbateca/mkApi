@@ -6,10 +6,11 @@ from application.dto.request import (
     ReportRequestDto,
     UpdateReportRequestDto,
 )
-from application.dto.response import ReportResponseDto
-from src.application.dto.request.set_report_status_request_dto import (
+from application.dto.request.set_report_status_request_dto import (
     SetReportStatusRequestDto,
 )
+from application.dto.response import ReportResponseDto
+from domain.model.authenticated_user import AuthenticatedUser
 
 
 class ReportHandlerInterface(ABC):
@@ -18,7 +19,7 @@ class ReportHandlerInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_reports(self) -> list[ReportResponseDto]:
+    async def get_reports(self, actor: AuthenticatedUser) -> list[ReportResponseDto]:
         pass
 
     @abstractmethod
