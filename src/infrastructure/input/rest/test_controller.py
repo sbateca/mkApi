@@ -13,10 +13,27 @@ from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
 from application.handler.test_handler_interface import TestHandlerInterface
-from infrastructure.configuration.dependencies import get_test_handler
+from domain.model.authorization_action import AuthorizationAction
+from domain.model.authorization_resource import AuthorizationResource
+from domain.spi.sample_persistence_port import SamplePersistencePort
+from domain.util.constants import ResourceType
+from infrastructure.configuration.dependencies import (
+    get_sample_persistence_adapter,
+    get_test_handler,
+)
+from infrastructure.input.rest.security.authorization import (
+    AuthenticatedActor,
+    AuthorizationDependency,
+    ensure_permission,
+    has_unrestricted_permission,
+    require_permission,
+)
 
 router = APIRouter(prefix="/tests", tags=["Tests"])
 TestHandlerDependency = Annotated[TestHandlerInterface, Depends(get_test_handler)]
+SamplePersistenceDependency = Annotated[
+    SamplePersistencePort, Depends(get_sample_persistence_adapter)
+]
 
 
 def _validation_error(error: ValueError) -> ApplicationRequestValidationError:
@@ -62,27 +79,90 @@ DeleteTestRequestDependency = Annotated[
 ]
 
 
-@router.post("", response_model=TestResponseDto, status_code=201)
+@router.post(
+    "",
+    response_model=TestResponseDto,
+    status_code=201,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.CREATE, ResourceType.TEST))
+    ],
+)
 async def create_test(
     request: TestRequestDto, handler: TestHandlerDependency
 ) -> TestResponseDto:
     return await handler.create_test(request)
 
 
-@router.get("", response_model=list[TestResponseDto], status_code=200)
-async def get_tests(handler: TestHandlerDependency) -> list[TestResponseDto]:
-    return await handler.get_tests()
+@router.get(
+    "",
+    response_model=list[TestResponseDto],
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.READ, ResourceType.TEST))
+    ],
+)
+async def get_tests(
+    handler: TestHandlerDependency,
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+    samples: SamplePersistenceDependency,
+) -> list[TestResponseDto]:
+    tests = await handler.get_tests()
+    if has_unrestricted_permission(
+        actor, authorization, AuthorizationAction.READ, ResourceType.TEST
+    ):
+        return tests
+
+    authorized_tests = []
+    for test in tests:
+        sample = await samples.get_sample_by_id(test.sample_id)
+        if sample and authorization.is_allowed(
+            actor,
+            AuthorizationAction.READ,
+            AuthorizationResource(ResourceType.TEST, sample.client.id),
+        ):
+            authorized_tests.append(test)
+    return authorized_tests
 
 
-@router.get("/{test_id}", response_model=TestResponseDto, status_code=200)
+@router.get(
+    "/{test_id}",
+    response_model=TestResponseDto,
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.READ, ResourceType.TEST))
+    ],
+)
 async def get_test_by_id(
     request: GetTestByIdRequestDependency,
     handler: TestHandlerDependency,
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+    samples: SamplePersistenceDependency,
 ) -> TestResponseDto:
-    return await handler.get_test_by_id(request)
+    test = await handler.get_test_by_id(request)
+    if not has_unrestricted_permission(
+        actor, authorization, AuthorizationAction.READ, ResourceType.TEST
+    ):
+        sample = await samples.get_sample_by_id(test.sample_id)
+        ensure_permission(
+            actor,
+            authorization,
+            AuthorizationAction.READ,
+            ResourceType.TEST,
+            sample.client.id if sample else None,
+        )
+    return test
 
 
-@router.put("/{test_id}", response_model=TestResponseDto, status_code=200)
+@router.put(
+    "/{test_id}",
+    response_model=TestResponseDto,
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.UPDATE, ResourceType.TEST))
+    ],
+)
 async def update_test(
     request: UpdateTestRequestDependency,
     handler: TestHandlerDependency,
@@ -90,7 +170,13 @@ async def update_test(
     return await handler.update_test(request)
 
 
-@router.delete("/{test_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{test_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.DELETE, ResourceType.TEST))
+    ],
+)
 async def delete_test(
     request: DeleteTestRequestDependency,
     handler: TestHandlerDependency,

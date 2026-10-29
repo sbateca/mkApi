@@ -1371,6 +1371,41 @@
           "response": []
         },
         {
+          "name": "Approve report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Report is approved\", function () {",
+                  "    pm.expect(pm.response.json().status).to.eql(\"Approved\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/{{reportId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "{{reportId}}",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Delete report by ID",
           "event": [
             {

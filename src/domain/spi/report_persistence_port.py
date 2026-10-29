@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from domain.model.report import Report
 
@@ -10,6 +11,10 @@ class ReportPersistencePort(ABC):
 
     @abstractmethod
     async def get_reports(self) -> list[Report]:
+        pass
+
+    @abstractmethod
+    async def get_reports_by_client_id(self, client_id: UUID) -> list[Report]:
         pass
 
     @abstractmethod

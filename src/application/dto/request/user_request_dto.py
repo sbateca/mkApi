@@ -8,12 +8,14 @@ from domain.util.constants import UserRole
 
 
 class UserRequestDto(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     name: str = Field(min_length=1, max_length=150)
     username: str = Field(min_length=1, max_length=150)
     password: str = Field(min_length=4, max_length=150)
     email: EmailStr
     roles: list[UserRole] = Field(min_length=1)
-    client_id: UUID | None = None
+    client_id: UUID | None = Field(alias="clientId", default=None)
 
 
 class UserIdRequestDto(BaseModel):

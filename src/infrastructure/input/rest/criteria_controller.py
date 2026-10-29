@@ -13,7 +13,10 @@ from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
 from application.handler.criteria_handler_interface import CriteriaHandlerInterface
+from domain.model.authorization_action import AuthorizationAction
+from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_criteria_handler
+from infrastructure.input.rest.security.authorization import require_permission
 
 router = APIRouter(prefix="/criteria", tags=["Criteria"])
 CriteriaHandlerDependency = Annotated[
@@ -64,21 +67,42 @@ DeleteCriteriaRequestDependency = Annotated[
 ]
 
 
-@router.post("", response_model=CriteriaResponseDto, status_code=201)
+@router.post(
+    "",
+    response_model=CriteriaResponseDto,
+    status_code=201,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.CREATE, ResourceType.CRITERIA))
+    ],
+)
 async def create_criteria(
     request: CriteriaRequestDto, handler: CriteriaHandlerDependency
 ) -> CriteriaResponseDto:
     return await handler.create_criteria(request)
 
 
-@router.get("", response_model=list[CriteriaResponseDto], status_code=200)
+@router.get(
+    "",
+    response_model=list[CriteriaResponseDto],
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.READ, ResourceType.CRITERIA))
+    ],
+)
 async def get_criteria(
     handler: CriteriaHandlerDependency,
 ) -> list[CriteriaResponseDto]:
     return await handler.get_criteria()
 
 
-@router.get("/{criteria_id}", response_model=CriteriaResponseDto, status_code=200)
+@router.get(
+    "/{criteria_id}",
+    response_model=CriteriaResponseDto,
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.READ, ResourceType.CRITERIA))
+    ],
+)
 async def get_criteria_by_id(
     request: GetCriteriaByIdRequestDependency,
     handler: CriteriaHandlerDependency,
@@ -86,7 +110,14 @@ async def get_criteria_by_id(
     return await handler.get_criteria_by_id(request)
 
 
-@router.put("/{criteria_id}", response_model=CriteriaResponseDto, status_code=200)
+@router.put(
+    "/{criteria_id}",
+    response_model=CriteriaResponseDto,
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.UPDATE, ResourceType.CRITERIA))
+    ],
+)
 async def update_criteria(
     request: UpdateCriteriaRequestDependency,
     handler: CriteriaHandlerDependency,
@@ -94,7 +125,13 @@ async def update_criteria(
     return await handler.update_criteria(request)
 
 
-@router.delete("/{criteria_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{criteria_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.DELETE, ResourceType.CRITERIA))
+    ],
+)
 async def delete_criteria(
     request: DeleteCriteriaRequestDependency,
     handler: CriteriaHandlerDependency,

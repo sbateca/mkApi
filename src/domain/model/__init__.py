@@ -2,6 +2,9 @@ from .analysis_method import AnalysisMethod
 from .analyte import Analyte
 from .auth_tokens import AuthTokens
 from .authenticated_user import AuthenticatedUser
+from .authorization_action import AuthorizationAction
+from .authorization_resource import AuthorizationResource
+from .authorization_scope import AuthorizationScope
 from .client import Client
 from .criteria import Criteria
 from .login_data import LoginData
@@ -22,4 +25,7 @@ __all__ = [
     "LoginData",
     "AuthenticatedUser",
     "AuthTokens",
+    "AuthorizationResource",
+    "AuthorizationScope",
+    "AuthorizationAction",
 ]

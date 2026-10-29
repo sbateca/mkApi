@@ -15,11 +15,17 @@ class JwtAdapter(TokenPort):
         self.algorithm = algorithm
         self.expiration_time = expiration_time
 
-    def create_token(self, user_id: UUID, roles: list[UserRole]) -> str:
+    def create_token(
+        self,
+        user_id: UUID,
+        roles: list[UserRole],
+        client_id: UUID | None = None,
+    ) -> str:
         now = datetime.now(UTC)
         payload = {
             TokenField.SUB.value: str(user_id),
             TokenField.ROLES.value: [role.value for role in roles],
+            TokenField.CLIENT_ID.value: str(client_id) if client_id else None,
             TokenField.IAT.value: now,
             TokenField.EXP.value: now + timedelta(seconds=self.expiration_time),
         }
@@ -33,6 +39,11 @@ class JwtAdapter(TokenPort):
                 id=UUID(payload[TokenField.SUB.value]),
                 roles=frozenset(
                     UserRole(role) for role in payload.get(TokenField.ROLES.value, [])
+                ),
+                client_id=(
+                    UUID(payload[TokenField.CLIENT_ID.value])
+                    if payload.get(TokenField.CLIENT_ID.value)
+                    else None
                 ),
             )
         except jwt.ExpiredSignatureError:

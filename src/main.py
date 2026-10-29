@@ -38,7 +38,6 @@ from domain.exception.test_type_exception import (
     TestTypeNotFoundError,
 )
 from domain.exception.user_exception import UserAlreadyExistsError, UserNotFoundError
-from domain.util.constants import UserRole
 from infrastructure.input.rest.analysis_method_controller import (
     router as analysis_method_router,
 )
@@ -83,7 +82,6 @@ from infrastructure.input.rest.sample_type_controller import (
 )
 from infrastructure.input.rest.security.authentication import (
     get_authenticated_user,
-    require_roles,
 )
 from infrastructure.input.rest.test_controller import router as test_router
 from infrastructure.input.rest.test_type_controller import router as test_type_router
@@ -96,7 +94,6 @@ app = FastAPI(
 
 app.include_router(authentication_router)
 authenticated = [Depends(get_authenticated_user)]
-admin_only = [Depends(require_roles(UserRole.ADMIN))]
 
 app.include_router(client_router, dependencies=authenticated)
 app.include_router(analysis_method_router, dependencies=authenticated)
@@ -106,8 +103,9 @@ app.include_router(sample_type_router, dependencies=authenticated)
 app.include_router(criteria_router, dependencies=authenticated)
 app.include_router(sample_router, dependencies=authenticated)
 app.include_router(test_router, dependencies=authenticated)
-app.include_router(role_router, dependencies=admin_only)
-app.include_router(user_router, dependencies=admin_only)
+app.include_router(role_router, dependencies=authenticated)
+app.include_router(user_router, dependencies=authenticated)
+app.include_router(report_router, dependencies=authenticated)
 
 app.add_exception_handler(
     RequestValidationError,
@@ -176,5 +174,4 @@ app.add_exception_handler(AuthenticationError, authentication_exception_handler)
 app.add_exception_handler(DomainError, domain_exception_handler)
 app.add_exception_handler(Exception, unexpected_exception_handler)
 
-app.include_router(report_router, dependencies=authenticated)
 app.add_exception_handler(ReportNotFoundError, report_not_found_exception_handler)

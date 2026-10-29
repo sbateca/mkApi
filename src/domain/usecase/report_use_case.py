@@ -8,12 +8,16 @@ from domain.exception.report_exception import (
 )
 from domain.exception.sample_exception import SampleNotFoundError
 from domain.exception.test_exception import TestNotFoundError
+from domain.model.authenticated_user import AuthenticatedUser
+from domain.model.authorization_action import AuthorizationAction
+from domain.model.authorization_scope import AuthorizationScope
 from domain.model.report import Report
+from domain.spi.authorization_port import AuthorizationPort
 from domain.spi.logger_port import LoggerPort, NullLogger
 from domain.spi.report_persistence_port import ReportPersistencePort
 from domain.spi.sample_persistence_port import SamplePersistencePort
 from domain.spi.test_persistence_port import TestPersistencePort
-from domain.util.constants import TEST_IDS_MUST_BE_UNIQUE_ERROR_MESSAGE
+from domain.util.constants import TEST_IDS_MUST_BE_UNIQUE_ERROR_MESSAGE, ResourceType
 
 
 class ReportUseCase(ReportServicePort):
@@ -22,16 +26,29 @@ class ReportUseCase(ReportServicePort):
         report_persistence_port: ReportPersistencePort,
         sample_persistence_port: SamplePersistencePort,
         test_persistence_port: TestPersistencePort,
+        authorization_port: AuthorizationPort,
         logger: LoggerPort | None = None,
     ):
         self.report_persistence_port = report_persistence_port
         self.sample_persistence_port = sample_persistence_port
         self.test_persistence_port = test_persistence_port
+        self.authorization_port = authorization_port
         self.logger = logger or NullLogger()
 
-    async def get_reports(self) -> list[Report]:
+    async def get_reports(self, actor: AuthenticatedUser) -> list[Report]:
         self.logger.info("Retrieving reports")
-        return await self.report_persistence_port.get_reports()
+        scope = self.authorization_port.get_scope(
+            actor,
+            AuthorizationAction.READ,
+            ResourceType.REPORT,
+        )
+        if scope is AuthorizationScope.ALL:
+            return await self.report_persistence_port.get_reports()
+        if scope is AuthorizationScope.OWN and actor.client_id is not None:
+            return await self.report_persistence_port.get_reports_by_client_id(
+                actor.client_id
+            )
+        return []
 
     async def get_report_by_id(self, report_id: str) -> Report:
         report = await self.report_persistence_port.get_report_by_id(report_id)

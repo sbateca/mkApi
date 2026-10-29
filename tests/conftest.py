@@ -1,9 +1,11 @@
+from unittest.mock import AsyncMock
 from uuid import UUID
 
 import pytest
 
 from domain.model.authenticated_user import AuthenticatedUser
 from domain.util.constants import UserRole
+from infrastructure.configuration.dependencies import get_sample_persistence_adapter
 from infrastructure.input.rest.security.authentication import get_authenticated_user
 from main import app
 
@@ -14,5 +16,7 @@ def authenticated_admin():
         id=UUID("a43b10d8-3ba7-4e2a-a510-baf8ac45dc1e"),
         roles=frozenset({UserRole.ADMIN}),
     )
+    app.dependency_overrides[get_sample_persistence_adapter] = lambda: AsyncMock()
     yield
     app.dependency_overrides.pop(get_authenticated_user, None)
+    app.dependency_overrides.pop(get_sample_persistence_adapter, None)

@@ -52,3 +52,17 @@ class ReportStatus(Enum):
     DRAFT = "Draft"
     APPROVED = "Approved"
     ISSUED = "Issued"
+
+
+class ResourceType(Enum):
+    CLIENT = "client"
+    ANALYSIS_METHOD = "analysis_method"
+    TEST_TYPE = "test_type"
+    ANALYTE = "analyte"
+    SAMPLE_TYPE = "sample_type"
+    CRITERIA = "criteria"
+    SAMPLE = "sample"
+    TEST = "test"
+    ROLE = "role"
+    USER = "user"
+    REPORT = "report"

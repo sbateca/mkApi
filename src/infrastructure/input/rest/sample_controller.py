@@ -13,7 +13,16 @@ from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
 from application.handler.sample_handler_interface import SampleHandlerInterface
+from domain.model.authorization_action import AuthorizationAction
+from domain.model.authorization_resource import AuthorizationResource
+from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_sample_handler
+from infrastructure.input.rest.security.authorization import (
+    AuthenticatedActor,
+    AuthorizationDependency,
+    ensure_permission,
+    require_permission,
+)
 
 router = APIRouter(prefix="/samples", tags=["Samples"])
 SampleHandlerDependency = Annotated[SampleHandlerInterface, Depends(get_sample_handler)]
@@ -62,27 +71,78 @@ DeleteSampleRequestDependency = Annotated[
 ]
 
 
-@router.post("", response_model=SampleResponseDto, status_code=201)
+@router.post(
+    "",
+    response_model=SampleResponseDto,
+    status_code=201,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.CREATE, ResourceType.SAMPLE))
+    ],
+)
 async def create_sample(
     request: SampleRequestDto, handler: SampleHandlerDependency
 ) -> SampleResponseDto:
     return await handler.create_sample(request)
 
 
-@router.get("", response_model=list[SampleResponseDto], status_code=200)
-async def get_samples(handler: SampleHandlerDependency) -> list[SampleResponseDto]:
-    return await handler.get_samples()
+@router.get(
+    "",
+    response_model=list[SampleResponseDto],
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.READ, ResourceType.SAMPLE))
+    ],
+)
+async def get_samples(
+    handler: SampleHandlerDependency,
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> list[SampleResponseDto]:
+    samples = await handler.get_samples()
+    return [
+        sample
+        for sample in samples
+        if authorization.is_allowed(
+            actor,
+            AuthorizationAction.READ,
+            AuthorizationResource(ResourceType.SAMPLE, sample.client.id),
+        )
+    ]
 
 
-@router.get("/{sample_id}", response_model=SampleResponseDto, status_code=200)
+@router.get(
+    "/{sample_id}",
+    response_model=SampleResponseDto,
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.READ, ResourceType.SAMPLE))
+    ],
+)
 async def get_sample_by_id(
     request: GetSampleByIdRequestDependency,
     handler: SampleHandlerDependency,
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
 ) -> SampleResponseDto:
-    return await handler.get_sample_by_id(request)
+    sample = await handler.get_sample_by_id(request)
+    ensure_permission(
+        actor,
+        authorization,
+        AuthorizationAction.READ,
+        ResourceType.SAMPLE,
+        sample.client.id,
+    )
+    return sample
 
 
-@router.put("/{sample_id}", response_model=SampleResponseDto, status_code=200)
+@router.put(
+    "/{sample_id}",
+    response_model=SampleResponseDto,
+    status_code=200,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.UPDATE, ResourceType.SAMPLE))
+    ],
+)
 async def update_sample(
     request: UpdateSampleRequestDependency,
     handler: SampleHandlerDependency,
@@ -90,7 +150,13 @@ async def update_sample(
     return await handler.update_sample(request)
 
 
-@router.delete("/{sample_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{sample_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.DELETE, ResourceType.SAMPLE))
+    ],
+)
 async def delete_sample(
     request: DeleteSampleRequestDependency,
     handler: SampleHandlerDependency,

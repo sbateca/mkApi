@@ -9,7 +9,10 @@ from application.dto.request.user_request_dto import (
 )
 from application.dto.response.user_response_dto import UserResponseDto
 from application.handler.user_handler_interface import UserHandlerInterface
+from domain.model.authorization_action import AuthorizationAction
+from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_user_handler
+from infrastructure.input.rest.security.authorization import require_permission
 
 router = APIRouter(prefix="/users", tags=["Users"])
 Handler = Annotated[UserHandlerInterface, Depends(get_user_handler)]
@@ -23,31 +26,62 @@ def update_request(user_id: str, user: UserRequestDto) -> UpdateUserRequestDto:
     return UpdateUserRequestDto(userId=user_id, user=user)
 
 
-@router.post("", response_model=UserResponseDto, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=UserResponseDto,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.CREATE, ResourceType.USER))
+    ],
+)
 async def create_user(request: UserRequestDto, handler: Handler) -> UserResponseDto:
     return await handler.create_user(request)
 
 
-@router.get("", response_model=list[UserResponseDto])
+@router.get(
+    "",
+    response_model=list[UserResponseDto],
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.READ, ResourceType.USER))
+    ],
+)
 async def get_users(handler: Handler) -> list[UserResponseDto]:
     return await handler.get_users()
 
 
-@router.get("/{user_id}", response_model=UserResponseDto)
+@router.get(
+    "/{user_id}",
+    response_model=UserResponseDto,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.READ, ResourceType.USER))
+    ],
+)
 async def get_user(
     request: Annotated[UserIdRequestDto, Depends(user_id_request)], handler: Handler
 ) -> UserResponseDto:
     return await handler.get_user(request)
 
 
-@router.put("/{user_id}", response_model=UserResponseDto)
+@router.put(
+    "/{user_id}",
+    response_model=UserResponseDto,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.UPDATE, ResourceType.USER))
+    ],
+)
 async def update_user(
     request: Annotated[UpdateUserRequestDto, Depends(update_request)], handler: Handler
 ) -> UserResponseDto:
     return await handler.update_user(request)
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(require_permission(AuthorizationAction.DELETE, ResourceType.USER))
+    ],
+)
 async def delete_user(
     request: Annotated[UserIdRequestDto, Depends(user_id_request)], handler: Handler
 ) -> None:

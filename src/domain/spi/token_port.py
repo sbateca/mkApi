@@ -7,7 +7,12 @@ from domain.util.constants import UserRole
 
 class TokenPort(ABC):
     @abstractmethod
-    def create_token(self, user_id: UUID, roles: list[UserRole]) -> str:
+    def create_token(
+        self,
+        user_id: UUID,
+        roles: list[UserRole],
+        client_id: UUID | None = None,
+    ) -> str:
         pass
 
     @abstractmethod
