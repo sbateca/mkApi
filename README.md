@@ -262,6 +262,11 @@ token to its replacement. Reuse of an already rotated token is treated as a
 possible theft and revokes the entire family; logout also revokes that session's
 family without closing sessions created by other logins.
 
+`GET /auth/me` requires a bearer access token and returns the current user's
+stored profile (ID, name, username, email, roles, and client ID). It does not
+require permission to read other users. A deleted user returns 404 even if their
+access token has not yet expired.
+
 ## Authorization
 
 Authorization is enforced locally with Casbin. The domain exposes an
