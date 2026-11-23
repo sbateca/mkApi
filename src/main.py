@@ -1,5 +1,8 @@
+import os
+
 from fastapi import Depends, FastAPI
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
@@ -90,6 +93,21 @@ from infrastructure.input.rest.user_controller import router as user_router
 app = FastAPI(
     title="Microlab API",
     version="1.0.0",
+)
+
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS", "http://localhost:5173,http://localhost:5174"
+    ).split(",")
+    if origin.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.include_router(authentication_router)
