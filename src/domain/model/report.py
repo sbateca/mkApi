@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from uuid import UUID
 
+from domain.model.action_decision import ActionDecision
 from domain.model.sample import Sample
 from domain.model.test import Test
 from domain.util.constants import ReportStatus
@@ -15,3 +16,8 @@ class Report:
     sample: Sample
     tests: list[Test] = field(default_factory=list)
     id: UUID | None = None
+
+
+@dataclass
+class ReportWithActions(Report):
+    actions: dict[str, ActionDecision] = field(default_factory=dict)

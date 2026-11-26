@@ -1,8 +1,10 @@
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from domain.exception.test_exception import LinkedReportTestError, TestNotFoundError
 from infrastructure.output.postgresql.entity.analyte_entity import AnalyteEntity
+from infrastructure.output.postgresql.entity.report_entity import report_tests
 from infrastructure.output.postgresql.entity.test_entity import TestEntity
 
 
@@ -42,10 +44,44 @@ class TestPostgreSQLRepository:
         return await self.get_test_by_id(str(entity.id))
 
     async def update_test(self, entity: TestEntity) -> TestEntity:
-        merged = await self.session.merge(entity)
-        await self.session.commit()
-        return await self.get_test_by_id(str(merged.id))
+        await self._write_unlinked_test(
+            update(TestEntity)
+            .where(TestEntity.id == entity.id)
+            .values(
+                sample_id=entity.sample_id,
+                test_type_id=entity.test_type_id,
+                analyte_id=entity.analyte_id,
+                analysis_method_id=entity.analysis_method_id,
+                criteria_id=entity.criteria_id,
+                result=entity.result,
+            ),
+            entity.id,
+        )
+        return await self.get_test_by_id(str(entity.id))
 
     async def delete_test(self, test_id: str) -> None:
-        await self.session.execute(delete(TestEntity).where(TestEntity.id == test_id))
-        await self.session.commit()
+        await self._write_unlinked_test(
+            delete(TestEntity).where(TestEntity.id == test_id), test_id
+        )
+
+    async def _write_unlinked_test(self, statement, test_id) -> None:
+        linked = (
+            select(report_tests.c.test_id)
+            .where(report_tests.c.test_id == TestEntity.id)
+            .exists()
+        )
+        try:
+            result = await self.session.execute(
+                statement.where(~linked).returning(TestEntity.id)
+            )
+            if result.scalar_one_or_none() is None:
+                existing = await self.session.execute(
+                    select(TestEntity.id).where(TestEntity.id == test_id)
+                )
+                if existing.scalar_one_or_none() is None:
+                    raise TestNotFoundError()
+                raise LinkedReportTestError()
+            await self.session.commit()
+        except Exception:
+            await self.session.rollback()
+            raise

@@ -79,20 +79,6 @@ DeleteTestRequestDependency = Annotated[
 ]
 
 
-@router.post(
-    "",
-    response_model=TestResponseDto,
-    status_code=201,
-    dependencies=[
-        Depends(require_permission(AuthorizationAction.CREATE, ResourceType.TEST))
-    ],
-)
-async def create_test(
-    request: TestRequestDto, handler: TestHandlerDependency
-) -> TestResponseDto:
-    return await handler.create_test(request)
-
-
 @router.get(
     "",
     response_model=list[TestResponseDto],

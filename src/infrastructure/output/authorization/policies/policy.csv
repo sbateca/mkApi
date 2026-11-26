@@ -33,6 +33,7 @@ p, Technical Director, report, read, all
 p, Technical Director, report, update, all
 p, Technical Director, report, delete, all
 p, Technical Director, report, approve, all
+p, Technical Director, report, download, all
 
 p, Analyst, sample_type, read, all
 p, Analyst, test_type, read, all
@@ -47,14 +48,17 @@ p, Analyst, test, update, all
 p, Analyst, report, create, all
 p, Analyst, report, read, all
 p, Analyst, report, update, all
+p, Analyst, report, download, all
 
 p, Receptionist, client, create, all
 p, Receptionist, client, read, all
 p, Receptionist, sample_type, read, all
 p, Receptionist, sample, create, all
 p, Receptionist, sample, read, all
+p, Receptionist, report, download, all
 
 p, Client, client, read, own
 p, Client, sample, read, own
 p, Client, test, read, own
 p, Client, report, read, own
+p, Client, report, download, own

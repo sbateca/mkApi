@@ -8,6 +8,7 @@ from application.dto.request.set_report_status_request_dto import (
     SetReportStatusRequestDto,
 )
 from application.dto.response import ReportResponseDto
+from application.dto.response.report_response_dto import ReportWithActionsResponseDto
 from application.handler.report_handler_interface import ReportHandlerInterface
 from application.mapper.report_mapper import ReportMapper
 from domain.api.report_service_port import ReportServicePort
@@ -19,33 +20,46 @@ class ReportHandler(ReportHandlerInterface):
         self.mapper = mapper
         self.service = service
 
-    async def create_report(self, request: ReportRequestDto) -> ReportResponseDto:
-        created = await self.service.create_report(self.mapper.to_report(request))
+    async def create_report(
+        self, request: ReportRequestDto, actor: AuthenticatedUser
+    ) -> ReportResponseDto:
+        created = await self.service.create_report(
+            self.mapper.to_report(request), actor
+        )
         return self.mapper.to_response(created)
 
-    async def get_reports(self, actor: AuthenticatedUser) -> list[ReportResponseDto]:
-        return self.mapper.to_response_list(await self.service.get_reports(actor))
+    async def get_reports(
+        self, actor: AuthenticatedUser
+    ) -> list[ReportWithActionsResponseDto]:
+        return self.mapper.to_response_list_with_actions(
+            await self.service.get_reports(actor)
+        )
 
     async def get_report_by_id(
-        self, request: GetReportByIdRequestDto
-    ) -> ReportResponseDto:
-        report = await self.service.get_report_by_id(self.mapper.to_report_id(request))
-        return self.mapper.to_response(report)
+        self, request: GetReportByIdRequestDto, actor: AuthenticatedUser
+    ) -> ReportWithActionsResponseDto:
+        report = await self.service.get_report_by_id(
+            self.mapper.to_report_id(request), actor
+        )
+        return self.mapper.to_response_with_actions(report)
 
-    async def update_report(self, request: UpdateReportRequestDto) -> ReportResponseDto:
+    async def update_report(
+        self, request: UpdateReportRequestDto, actor: AuthenticatedUser
+    ) -> ReportResponseDto:
         updated = await self.service.update_report(
-            request.report_id,
-            self.mapper.to_report(request.report),
+            request.report_id, self.mapper.to_report(request.report), actor
         )
         return self.mapper.to_response(updated)
 
-    async def delete_report(self, request: DeleteReportRequestDto) -> None:
-        await self.service.delete_report(request.report_id)
+    async def delete_report(
+        self, request: DeleteReportRequestDto, actor: AuthenticatedUser
+    ) -> None:
+        await self.service.delete_report(request.report_id, actor)
 
     async def set_report_status(
-        self, request: SetReportStatusRequestDto
+        self, request: SetReportStatusRequestDto, actor: AuthenticatedUser
     ) -> ReportResponseDto:
         updated_report = await self.service.set_report_status(
-            request.report_id, request.status
+            request.report_id, request.status, actor
         )
         return self.mapper.to_response(updated_report)

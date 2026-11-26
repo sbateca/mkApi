@@ -97,7 +97,6 @@ def expected_response() -> dict:
 async def test_test_crud_routes_delegate_to_handler_with_ui_shape():
     item = build_test_response()
     handler = AsyncMock()
-    handler.create_test.return_value = item
     handler.get_tests.return_value = [item]
     handler.get_test_by_id.return_value = item
     handler.update_test.return_value = item
@@ -116,13 +115,12 @@ async def test_test_crud_routes_delegate_to_handler_with_ui_shape():
             deleted = await client.delete(f"/tests/{TEST_ID}")
 
         expected = expected_response()
-        assert created.status_code == 201
-        assert created.json() == expected
+        assert created.status_code == 405
         assert listed.json() == [expected]
         assert fetched.json() == expected
         assert updated.json() == expected
         assert deleted.status_code == 204
-        handler.create_test.assert_awaited_once()
+        handler.create_test.assert_not_awaited()
         handler.get_tests.assert_awaited_once()
         handler.get_test_by_id.assert_awaited_once()
         handler.update_test.assert_awaited_once()
@@ -143,14 +141,14 @@ async def test_test_routes_validate_body_and_path_ids():
         ) as client:
             blank_result_body = {**body, "result": "  "}
             bad_analyte_body = {**body, "analyteId": "invalid"}
-            blank_result = await client.post("/tests", json=blank_result_body)
-            bad_analyte = await client.post("/tests", json=bad_analyte_body)
+            blank_result = await client.put(f"/tests/{TEST_ID}", json=blank_result_body)
+            bad_analyte = await client.put(f"/tests/{TEST_ID}", json=bad_analyte_body)
             bad_path = await client.get("/tests/invalid")
 
         assert blank_result.status_code == 422
         assert bad_analyte.status_code == 422
         assert bad_path.status_code == 422
-        handler.create_test.assert_not_awaited()
+        handler.update_test.assert_not_awaited()
         handler.get_test_by_id.assert_not_awaited()
     finally:
         app.dependency_overrides.clear()
@@ -167,18 +165,18 @@ async def test_test_routes_validate_body_and_path_ids():
         (CriteriaNotFoundError(), 404, "CRITERIA_NOT_FOUND"),
     ],
 )
-async def test_create_test_maps_related_not_found_errors(
+async def test_update_test_maps_related_not_found_errors(
     exception, status_code, error_type
 ):
     handler = AsyncMock()
-    handler.create_test.side_effect = exception
+    handler.update_test.side_effect = exception
     app.dependency_overrides[get_test_handler] = lambda: handler
 
     try:
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as client:
-            result = await client.post("/tests", json=build_test_body())
+            result = await client.put(f"/tests/{TEST_ID}", json=build_test_body())
 
         assert result.status_code == status_code
         assert result.json()["type"] == error_type

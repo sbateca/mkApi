@@ -1,7 +1,15 @@
 from datetime import date
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table
+from sqlalchemy import (
+    Column,
+    Date,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from infrastructure.output.postgresql.database.base import Base
@@ -14,6 +22,7 @@ report_tests = Table(
     Column("report_id", ForeignKey("reports.id", ondelete="CASCADE"), primary_key=True),
     Column("test_id", ForeignKey("tests.id"), primary_key=True),
     Column("position", Integer, nullable=False),
+    UniqueConstraint("test_id", name="uq_report_tests_test_id"),
 )
 
 

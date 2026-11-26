@@ -53,6 +53,7 @@ class RoleErrorType(Enum):
 class ReportErrorType(Enum):
     REPORT_ALREADY_EXISTS = "REPORT_ALREADY_EXISTS"
     REPORT_NOT_FOUND = "REPORT_NOT_FOUND"
+    REPORT_ACTION_DENIED = "REPORT_ACTION_DENIED"
 
 
 class DomainErrorType(Enum):
