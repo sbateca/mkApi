@@ -154,13 +154,13 @@ class ReportUseCase(ReportServicePort):
     ) -> Report:
         report = await self._get_report(report_id)
         self._check_action_decision(actor, AuthorizationAction.APPROVE, report)
-        if status != ReportStatus.APPROVED.value:
+        if ReportStatus.normalize(status) != ReportStatus.APPROVED.value:
             raise ReportActionDeniedError(
                 ActionDecisionCode.INVALID_REPORT_STATUS.value,
                 REPORT_INVALID_STATUS_ERROR_MESSAGE,
             )
         return await self.report_persistence_port.update_report_status(
-            report_id, status
+            report_id, ReportStatus.APPROVED.value
         )
 
     async def _validate_report_relations(self, report: Report) -> None:
@@ -267,7 +267,7 @@ class ReportUseCase(ReportServicePort):
                 code=ActionDecisionCode.FORBIDDEN.value,
                 reason=ACTION_FORBIDDEN_ERROR_MESSAGE,
             )
-        if not ReportStatus.is_draft(report.status):
+        if ReportStatus.normalize(report.status) != ReportStatus.DRAFT.value:
             return ActionDecision(
                 allowed=False,
                 code=ActionDecisionCode.REPORT_NOT_DRAFT.value,
@@ -277,7 +277,7 @@ class ReportUseCase(ReportServicePort):
 
     @staticmethod
     def _check_perform_download_decision(report: Report) -> ActionDecision:
-        if report.status in (ReportStatus.APPROVED, ReportStatus.APPROVED.value):
+        if ReportStatus.normalize(report.status) == ReportStatus.APPROVED.value:
             return ActionDecision(allowed=True)
         return ActionDecision(
             allowed=False,

@@ -1,10 +1,11 @@
 from datetime import date
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from application.dto.response.sample_response_dto import SampleResponseDto
 from application.dto.response.test_response_dto import TestResponseDto
+from domain.util.constants import ReportStatus
 
 
 class ReportResponseDto(BaseModel):
@@ -16,6 +17,11 @@ class ReportResponseDto(BaseModel):
     status: str
     sample: SampleResponseDto
     tests: list[TestResponseDto]
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def normalize_status(cls, status: ReportStatus | str) -> str:
+        return ReportStatus.normalize(status)
 
 
 class ReportWithActionsResponseDto(ReportResponseDto):

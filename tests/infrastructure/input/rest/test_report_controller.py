@@ -28,6 +28,7 @@ async def test_report_routes_with_real_handler_and_mapper():
             assert created.status_code == 201
             data = created.json()
             assert data["reportNumber"] == body()["reportNumber"]
+            assert data["status"] == "draft"
             assert data["sample"]["client"]["name"] == domain_sample().client.name
             assert (
                 data["tests"][0]["analyte"]["testType"]["name"]
@@ -45,9 +46,9 @@ async def test_report_routes_with_real_handler_and_mapper():
             assert (
                 await client.put(f"/reports/{item.id}", json=body())
             ).status_code == 200
-            assert (
-                await client.patch(f"/reports/{item.id}/approve")
-            ).status_code == 200
+            approved = await client.patch(f"/reports/{item.id}/approve")
+            assert approved.status_code == 200
+            assert approved.json()["status"] == "approved"
             assert (await client.delete(f"/reports/{item.id}")).status_code == 204
             for method in [client.get, client.delete]:
                 assert (await method("/reports/invalid")).status_code == 422
