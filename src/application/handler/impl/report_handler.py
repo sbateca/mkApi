@@ -8,7 +8,11 @@ from application.dto.request.set_report_status_request_dto import (
     SetReportStatusRequestDto,
 )
 from application.dto.response import ReportResponseDto
-from application.dto.response.report_response_dto import ReportWithActionsResponseDto
+from application.dto.response.report_response_dto import (
+    ActionDecisionResponseDto,
+    ReportCollectionActionsResponseDto,
+    ReportWithActionsResponseDto,
+)
 from application.handler.report_handler_interface import ReportHandlerInterface
 from application.mapper.report_mapper import ReportMapper
 from domain.api.report_service_port import ReportServicePort
@@ -19,6 +23,16 @@ class ReportHandler(ReportHandlerInterface):
     def __init__(self, mapper: ReportMapper, service: ReportServicePort):
         self.mapper = mapper
         self.service = service
+
+    def get_collection_actions(
+        self, actor: AuthenticatedUser
+    ) -> ReportCollectionActionsResponseDto:
+        decision = self.service.get_create_decision(actor)
+        return ReportCollectionActionsResponseDto(
+            create=ActionDecisionResponseDto(
+                allowed=decision.allowed, code=decision.code, reason=decision.reason
+            )
+        )
 
     async def create_report(
         self, request: ReportRequestDto, actor: AuthenticatedUser

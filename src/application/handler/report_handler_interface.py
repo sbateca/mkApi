@@ -10,11 +10,20 @@ from application.dto.request.set_report_status_request_dto import (
     SetReportStatusRequestDto,
 )
 from application.dto.response import ReportResponseDto
-from application.dto.response.report_response_dto import ReportWithActionsResponseDto
+from application.dto.response.report_response_dto import (
+    ReportCollectionActionsResponseDto,
+    ReportWithActionsResponseDto,
+)
 from domain.model.authenticated_user import AuthenticatedUser
 
 
 class ReportHandlerInterface(ABC):
+    @abstractmethod
+    def get_collection_actions(
+        self, actor: AuthenticatedUser
+    ) -> ReportCollectionActionsResponseDto:
+        pass
+
     @abstractmethod
     async def create_report(
         self, request: ReportRequestDto, actor: AuthenticatedUser

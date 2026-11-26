@@ -95,3 +95,34 @@ async def test_report_usecase_injects_links_with_the_report_session():
         response = await client.get("/")
     assert response.status_code == 200
     assert response.json() == {"injected": True}
+
+
+async def test_collection_actions_reports_create_permission_without_listing_reports():
+    from domain.model.authenticated_user import AuthenticatedUser
+    from domain.util.constants import UserRole
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        original_actor = app.dependency_overrides[get_authenticated_user]
+        try:
+            for role in UserRole:
+                app.dependency_overrides[get_authenticated_user] = lambda role=role: (
+                    AuthenticatedUser(id=original_actor().id, roles=frozenset({role}))
+                )
+                response = await client.get("/reports/actions")
+                assert response.status_code == 200
+                allowed = role in {
+                    UserRole.ADMIN,
+                    UserRole.TECHNICAL_DIRECTOR,
+                    UserRole.ANALYST,
+                }
+                decision = response.json()["create"]
+                assert decision["allowed"] is allowed
+                assert decision["code"] == (None if allowed else "forbidden")
+                if not allowed:
+                    assert (
+                        await client.post("/reports", json=body())
+                    ).status_code == 403
+        finally:
+            app.dependency_overrides[get_authenticated_user] = original_actor

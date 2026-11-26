@@ -12,7 +12,10 @@ from application.dto.request.set_report_status_request_dto import (
     SetReportStatusRequestDto,
 )
 from application.dto.response import ReportResponseDto
-from application.dto.response.report_response_dto import ReportWithActionsResponseDto
+from application.dto.response.report_response_dto import (
+    ReportCollectionActionsResponseDto,
+    ReportWithActionsResponseDto,
+)
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
@@ -106,6 +109,14 @@ async def get_reports(
     actor: AuthenticatedActor,
 ) -> list[ReportWithActionsResponseDto]:
     return await handler.get_reports(actor)
+
+
+@router.get("/actions", response_model=ReportCollectionActionsResponseDto)
+async def get_report_collection_actions(
+    handler: ReportHandlerDependency,
+    actor: AuthenticatedActor,
+) -> ReportCollectionActionsResponseDto:
+    return handler.get_collection_actions(actor)
 
 
 @router.get(

@@ -27,3 +27,7 @@ class ActionDecisionResponseDto(BaseModel):
     allowed: bool
     code: str | None = None
     reason: str | None = None
+
+
+class ReportCollectionActionsResponseDto(BaseModel):
+    create: ActionDecisionResponseDto
