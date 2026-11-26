@@ -75,15 +75,13 @@ class UserRole(Enum):
 
 
 class ReportStatus(Enum):
-    DRAFT = "Draft"
-    APPROVED = "Approved"
-    ISSUED = "Issued"
+    DRAFT = "draft"
+    APPROVED = "approved"
+    ISSUED = "issued"
 
     @classmethod
-    def is_draft(cls, status: "ReportStatus | str") -> bool:
-        return status is cls.DRAFT or (
-            isinstance(status, str) and status.lower() == cls.DRAFT.value.lower()
-        )
+    def normalize(cls, status: "ReportStatus | str") -> str:
+        return status.value if isinstance(status, cls) else status.strip().lower()
 
 
 class ResourceType(Enum):

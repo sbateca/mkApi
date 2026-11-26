@@ -113,12 +113,12 @@ async def test_report_status_update_preserves_fields_and_relations():
     item = report()
     persistence.get_report_by_id.return_value = item
     updated = await usecase.set_report_status(str(item.id), "Approved", admin())
-    assert updated.status == "Approved"
+    assert updated.status == "approved"
     assert updated.id == item.id
     assert updated.report_number == "FE 3157 - 361"
     assert updated.sample == domain_sample()
     assert updated.tests == [domain_test()]
-    persistence.update_report_status.assert_awaited_once_with(str(item.id), "Approved")
+    persistence.update_report_status.assert_awaited_once_with(str(item.id), "approved")
     samples.get_sample_by_id.assert_not_awaited()
 
 
@@ -163,14 +163,14 @@ async def test_create_and_update_cannot_approve_report():
     item.status = "Approved"
 
     created = await usecase.create_report(item, actor)
-    assert created.status == "Draft"
+    assert created.status == "draft"
 
     persistence.get_report_by_id.return_value = created
     edited = report()
     edited.status = "Approved"
     assert (
         await usecase.update_report(str(created.id), edited, actor)
-    ).status == "Draft"
+    ).status == "draft"
     persistence.update_report_status.assert_not_awaited()
 
 
@@ -179,6 +179,7 @@ async def test_create_and_update_cannot_approve_report():
     [
         (True, "Draft", "report_not_approved"),
         (True, "Approved", None),
+        (True, "approved", None),
         (True, "Issued", "report_not_approved"),
         (False, "Approved", "forbidden"),
     ],

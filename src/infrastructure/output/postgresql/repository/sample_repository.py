@@ -82,8 +82,7 @@ class SamplePostgreSQLRepository:
             if current_client_id != entity.client_id:
                 approved = select(ReportEntity.id).where(
                     ReportEntity.sample_id == entity.id,
-                    func.lower(ReportEntity.status)
-                    == ReportStatus.APPROVED.value.lower(),
+                    func.lower(ReportEntity.status) == ReportStatus.APPROVED.value,
                 )
                 result = await self.session.execute(select(approved.exists()))
                 if result.scalar_one():

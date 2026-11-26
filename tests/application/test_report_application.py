@@ -41,6 +41,24 @@ async def test_status_handler_delegates_and_maps_response():
     response = await handler.set_report_status(request, actor)
     service.set_report_status.assert_awaited_once_with(str(item.id), "Approved", actor)
     assert response.id == item.id
-    assert response.status == "Approved"
+    assert response.status == "approved"
     assert response.sample.id == item.sample.id
     assert response.tests[0].id == item.tests[0].id
+
+
+@pytest.mark.parametrize(
+    ("stored_status", "api_status"),
+    [("Draft", "draft"), ("Approved", "approved"), ("Issued", "issued")],
+)
+def test_report_response_normalizes_legacy_status(stored_status, api_status):
+    from application.mapper.report_mapper import ReportMapper
+    from domain.model.report import ReportWithActions
+    from tests.builders.report_builder import report
+
+    item = report()
+    item.status = stored_status
+    with_actions = ReportWithActions(**vars(item))
+    mapper = ReportMapper()
+
+    assert mapper.to_response(item).status == api_status
+    assert mapper.to_response_with_actions(with_actions).status == api_status

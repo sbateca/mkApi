@@ -251,7 +251,7 @@ class ReportPostgreSQLRepository:
 
     @staticmethod
     def _draft_status():
-        return func.lower(ReportEntity.status) == ReportStatus.DRAFT.value.lower()
+        return func.lower(ReportEntity.status) == ReportStatus.DRAFT.value
 
     async def _raise_draft_write_error(self, report_id: str | UUID) -> None:
         result = await self.session.execute(
