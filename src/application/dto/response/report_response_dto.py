@@ -16,3 +16,14 @@ class ReportResponseDto(BaseModel):
     status: str
     sample: SampleResponseDto
     tests: list[TestResponseDto]
+
+
+class ReportWithActionsResponseDto(ReportResponseDto):
+    model_config = ConfigDict(populate_by_name=True)
+    actions: dict[str, "ActionDecisionResponseDto"] = Field(default_factory=dict)
+
+
+class ActionDecisionResponseDto(BaseModel):
+    allowed: bool
+    code: str | None = None
+    reason: str | None = None

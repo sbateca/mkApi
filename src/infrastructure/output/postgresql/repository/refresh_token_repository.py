@@ -51,8 +51,6 @@ class RefreshTokenPostgreSQLRepository:
             return None
 
         new_token_id = uuid4()
-        current.revoked_at = now
-        current.replaced_by_token_id = new_token_id
         self.session.add(
             RefreshTokenEntity(
                 id=new_token_id,
@@ -62,6 +60,10 @@ class RefreshTokenPostgreSQLRepository:
                 expires_at=new_expires_at,
             )
         )
+        # Insert the replacement before referencing it through the self FK.
+        await self.session.flush()
+        current.revoked_at = now
+        current.replaced_by_token_id = new_token_id
         await self.session.commit()
         return current.user_id
 

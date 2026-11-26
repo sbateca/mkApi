@@ -2,11 +2,17 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from domain.model.report import Report
+from domain.spi.report_test_persistence_port import ReportTestPersistencePort
 
 
 class ReportPersistencePort(ABC):
     @abstractmethod
-    async def save_report(self, report: Report) -> Report:
+    async def save_report(
+        self,
+        report: Report,
+        *,
+        report_tests_port: ReportTestPersistencePort | None = None,
+    ) -> Report:
         pass
 
     @abstractmethod
@@ -23,6 +29,10 @@ class ReportPersistencePort(ABC):
 
     @abstractmethod
     async def update_report(self, report: Report) -> Report:
+        pass
+
+    @abstractmethod
+    async def update_report_status(self, report_id: str, status: str) -> Report:
         pass
 
     @abstractmethod

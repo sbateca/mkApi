@@ -20,6 +20,7 @@ def make_session():
     session = Mock()
     session.execute = AsyncMock()
     session.commit = AsyncMock()
+    session.flush = AsyncMock()
     return session
 
 
@@ -43,6 +44,13 @@ async def test_rotate_revokes_current_token_and_preserves_family():
     session.execute.return_value = result
     repository = RefreshTokenPostgreSQLRepository(session)
 
+    async def verify_replacement_exists_before_linking():
+        assert session.add.call_args.args[0].token_hash == "new-hash"
+        assert current.replaced_by_token_id is None
+        assert current.revoked_at is None
+
+    session.flush.side_effect = verify_replacement_exists_before_linking
+
     user_id = await repository.rotate(
         "old-hash",
         "new-hash",
@@ -55,6 +63,7 @@ async def test_rotate_revokes_current_token_and_preserves_family():
     assert current.replaced_by_token_id == replacement.id
     assert replacement.family_id == FAMILY_ID
     assert replacement.token_hash == "new-hash"
+    session.flush.assert_awaited_once()
     session.commit.assert_awaited_once()
 
 

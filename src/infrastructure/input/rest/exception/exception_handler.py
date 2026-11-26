@@ -24,7 +24,10 @@ from domain.exception.criteria_exception import (
     CriteriaNotFoundError,
 )
 from domain.exception.domain_exception import DomainError
-from domain.exception.report_exception import ReportNotFoundError
+from domain.exception.report_exception import (
+    ReportActionDeniedError,
+    ReportNotFoundError,
+)
 from domain.exception.role_exception import RoleAlreadyExistsError, RoleNotFoundError
 from domain.exception.sample_exception import (
     SampleAlreadyExistsError,
@@ -391,6 +394,18 @@ async def report_not_found_exception_handler(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
             JsonResponseContentField.TYPE.value: ReportErrorType.REPORT_NOT_FOUND.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
+        },
+    )
+
+
+async def report_action_denied_exception_handler(
+    request: Request, exception: ReportActionDeniedError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={
+            JsonResponseContentField.TYPE.value: ReportErrorType.REPORT_ACTION_DENIED.value,
             JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )

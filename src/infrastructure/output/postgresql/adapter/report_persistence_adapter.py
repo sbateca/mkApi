@@ -2,6 +2,7 @@ from uuid import UUID
 
 from domain.model.report import Report
 from domain.spi.report_persistence_port import ReportPersistencePort
+from domain.spi.report_test_persistence_port import ReportTestPersistencePort
 from infrastructure.output.postgresql.mapper.report_entity_mapper import (
     ReportEntityMapper,
 )
@@ -19,9 +20,19 @@ class ReportPersistenceAdapter(ReportPersistencePort):
         self.repository = repository
         self.entity_mapper = entity_mapper
 
-    async def save_report(self, report: Report) -> Report:
+    async def save_report(
+        self,
+        report: Report,
+        *,
+        report_tests_port: ReportTestPersistencePort | None = None,
+    ) -> Report:
         saved = await self.repository.save_report(
-            self.entity_mapper.to_entity(report), [test.id for test in report.tests]
+            self.entity_mapper.to_entity(report),
+            [
+                self.entity_mapper.test_entity_mapper.to_entity(test)
+                for test in report.tests
+            ],
+            report_tests_port=report_tests_port,
         )
         return self.entity_mapper.to_domain(saved)
 
@@ -38,8 +49,16 @@ class ReportPersistenceAdapter(ReportPersistencePort):
 
     async def update_report(self, report: Report) -> Report:
         updated = await self.repository.update_report(
-            self.entity_mapper.to_entity(report), [test.id for test in report.tests]
+            self.entity_mapper.to_entity(report),
+            [
+                self.entity_mapper.test_entity_mapper.to_entity(test)
+                for test in report.tests
+            ],
         )
+        return self.entity_mapper.to_domain(updated)
+
+    async def update_report_status(self, report_id: str, status: str) -> Report:
+        updated = await self.repository.update_report_status(report_id, status)
         return self.entity_mapper.to_domain(updated)
 
     async def delete_report(self, report_id: str) -> None:

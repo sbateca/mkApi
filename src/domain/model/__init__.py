@@ -28,4 +28,5 @@ __all__ = [
     "AuthorizationResource",
     "AuthorizationScope",
     "AuthorizationAction",
+    "ActionDecision",
 ]

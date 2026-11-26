@@ -146,3 +146,31 @@ async def test_test_adapter_returns_none_for_missing_entities():
     adapter = PersistenceAdapter(repository, mapper())
 
     assert await adapter.get_test_by_id(str(TEST_ID)) is None
+
+
+@pytest.mark.parametrize("operation", ["edit", "delete"])
+async def test_repository_rejects_direct_writes_to_linked_tests(operation):
+    from unittest.mock import Mock
+
+    from domain.exception.test_exception import LinkedReportTestError
+    from infrastructure.output.postgresql.repository.test_repository import (
+        TestPostgreSQLRepository,
+    )
+
+    session = AsyncMock()
+    skipped, existing = Mock(), Mock()
+    skipped.scalar_one_or_none.return_value = None
+    existing.scalar_one_or_none.return_value = TEST_ID
+    session.execute.side_effect = [skipped, existing]
+    repository = TestPostgreSQLRepository(session)
+
+    with pytest.raises(LinkedReportTestError):
+        if operation == "edit":
+            await repository.update_test(PersistenceEntity(id=TEST_ID))
+        else:
+            await repository.delete_test(str(TEST_ID))
+
+    statement = str(session.execute.await_args_list[0].args[0].compile())
+    assert "EXISTS" in statement and "report_tests" in statement
+    session.rollback.assert_awaited_once()
+    session.commit.assert_not_awaited()

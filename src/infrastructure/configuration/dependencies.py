@@ -56,6 +56,7 @@ from domain.api.sample_type_service_port import SampleTypeServicePort
 from domain.api.test_service_port import TestServicePort
 from domain.api.test_type_service_port import TestTypeServicePort
 from domain.api.user_service_port import UserServicePort
+from domain.policy.action_policy import ActionPolicy
 from domain.spi.analysis_method_persistence_port import AnalysisMethodPersistencePort
 from domain.spi.analyte_persistence_port import AnalytePersistencePort
 from domain.spi.authentication_service_port import AuthenticationServicePort
@@ -66,6 +67,7 @@ from domain.spi.password_hasher_port import PasswordHasherPort
 from domain.spi.refresh_token_persistence_port import RefreshTokenPersistencePort
 from domain.spi.refresh_token_port import RefreshTokenPort
 from domain.spi.report_persistence_port import ReportPersistencePort
+from domain.spi.report_test_persistence_port import ReportTestPersistencePort
 from domain.spi.role_persistence_port import RolePersistencePort
 from domain.spi.sample_persistence_port import SamplePersistencePort
 from domain.spi.sample_type_persistence_port import SampleTypePersistencePort
@@ -109,6 +111,9 @@ from infrastructure.output.postgresql.adapter.refresh_token_persistence_adapter 
 )
 from infrastructure.output.postgresql.adapter.report_persistence_adapter import (
     ReportPersistenceAdapter,
+)
+from infrastructure.output.postgresql.adapter.report_test_persistence_adapter import (
+    ReportTestPersistenceAdapter,
 )
 from infrastructure.output.postgresql.adapter.role_persistence_adapter import (
     RolePersistenceAdapter,
@@ -784,18 +789,54 @@ def get_report_persistence_adapter(
     return ReportPersistenceAdapter(repository, mapper)
 
 
+def get_report_test_persistence_adapter(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> ReportTestPersistencePort:
+    return ReportTestPersistenceAdapter(session)
+
+
+def get_action_policy(
+    authorization_port: Annotated[AuthorizationPort, Depends(get_authorization_port)],
+) -> ActionPolicy:
+    return ActionPolicy(authorization_port)
+
+
 def get_report_usecase(
-    reports: Annotated[ReportPersistencePort, Depends(get_report_persistence_adapter)],
-    samples: Annotated[SamplePersistencePort, Depends(get_sample_persistence_adapter)],
-    tests: Annotated[TestPersistencePort, Depends(get_test_persistence_adapter)],
-    authorization: Annotated[AuthorizationPort, Depends(get_authorization_port)],
+    reports_persistence_port: Annotated[
+        ReportPersistencePort, Depends(get_report_persistence_adapter)
+    ],
+    sample_persistence_port: Annotated[
+        SamplePersistencePort, Depends(get_sample_persistence_adapter)
+    ],
+    analyte_persistence_port: Annotated[
+        AnalytePersistencePort, Depends(get_analyte_persistence_adapter)
+    ],
+    analysis_method_persistence_port: Annotated[
+        AnalysisMethodPersistencePort, Depends(get_analysis_method_persistence_adapter)
+    ],
+    criteria_persistence_port: Annotated[
+        CriteriaPersistencePort, Depends(get_criteria_persistence_adapter)
+    ],
+    test_type_persistence_port: Annotated[
+        TestTypePersistencePort, Depends(get_test_type_persistence_adapter)
+    ],
+    authorization_port: Annotated[AuthorizationPort, Depends(get_authorization_port)],
+    action_policy: Annotated[ActionPolicy, Depends(get_action_policy)],
+    report_test_persistence_port: Annotated[
+        ReportTestPersistencePort, Depends(get_report_test_persistence_adapter)
+    ],
 ) -> ReportServicePort:
     return ReportUseCase(
-        reports,
-        samples,
-        tests,
-        authorization,
-        LoggerAdapter("mkapi.report"),
+        report_persistence_port=reports_persistence_port,
+        sample_persistence_port=sample_persistence_port,
+        analyte_persistence_port=analyte_persistence_port,
+        analysis_method_persistence_port=analysis_method_persistence_port,
+        criteria_persistence_port=criteria_persistence_port,
+        test_type_persistence_port=test_type_persistence_port,
+        report_test_persistence_port=report_test_persistence_port,
+        authorization_port=authorization_port,
+        action_policy=action_policy,
+        logger=LoggerAdapter("mkapi.report"),
     )
 
 

@@ -2,8 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from application.dto.request import ReportRequestDto
-from tests.builders.report_builder import body
-from tests.builders.report_test_builder import domain_test
+from tests.builders.report_builder import admin, body
 
 
 @pytest.mark.parametrize(
@@ -14,7 +13,7 @@ from tests.builders.report_test_builder import domain_test
         {"sampleId": "invalid"},
         {"reportDate": "bad"},
         {"testIds": ["bad"]},
-        {"testIds": [str(domain_test().id)] * 2},
+        {"testIds": body()["testIds"] * 2},
     ],
 )
 def test_report_request_validation(change):
@@ -38,8 +37,9 @@ async def test_status_handler_delegates_and_maps_response():
     service.set_report_status.return_value = item
     handler = ReportHandler(ReportMapper(), service)
     request = SetReportStatusRequestDto(reportId=str(item.id), status="Approved")
-    response = await handler.set_report_status(request)
-    service.set_report_status.assert_awaited_once_with(str(item.id), "Approved")
+    actor = admin()
+    response = await handler.set_report_status(request, actor)
+    service.set_report_status.assert_awaited_once_with(str(item.id), "Approved", actor)
     assert response.id == item.id
     assert response.status == "Approved"
     assert response.sample.id == item.sample.id

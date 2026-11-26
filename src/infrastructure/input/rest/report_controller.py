@@ -12,18 +12,15 @@ from application.dto.request.set_report_status_request_dto import (
     SetReportStatusRequestDto,
 )
 from application.dto.response import ReportResponseDto
+from application.dto.response.report_response_dto import ReportWithActionsResponseDto
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
 from application.handler.report_handler_interface import ReportHandlerInterface
-from domain.model.authorization_action import AuthorizationAction
-from domain.util.constants import ReportStatus, ResourceType
+from domain.util.constants import ReportStatus
 from infrastructure.configuration.dependencies import get_report_handler
 from infrastructure.input.rest.security.authorization import (
     AuthenticatedActor,
-    AuthorizationDependency,
-    ensure_permission,
-    require_permission,
 )
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
@@ -90,95 +87,73 @@ ApproveReportRequestDependency = Annotated[
     "",
     response_model=ReportResponseDto,
     status_code=201,
-    dependencies=[
-        Depends(require_permission(AuthorizationAction.CREATE, ResourceType.REPORT))
-    ],
 )
 async def create_report(
-    request: ReportRequestDto, handler: ReportHandlerDependency
+    request: ReportRequestDto,
+    handler: ReportHandlerDependency,
+    actor: AuthenticatedActor,
 ) -> ReportResponseDto:
-    return await handler.create_report(request)
+    return await handler.create_report(request, actor)
 
 
 @router.get(
     "",
-    response_model=list[ReportResponseDto],
+    response_model=list[ReportWithActionsResponseDto],
     status_code=200,
-    dependencies=[
-        Depends(require_permission(AuthorizationAction.READ, ResourceType.REPORT))
-    ],
 )
 async def get_reports(
     handler: ReportHandlerDependency,
     actor: AuthenticatedActor,
-) -> list[ReportResponseDto]:
+) -> list[ReportWithActionsResponseDto]:
     return await handler.get_reports(actor)
 
 
 @router.get(
     "/{report_id}",
-    response_model=ReportResponseDto,
+    response_model=ReportWithActionsResponseDto,
     status_code=200,
-    dependencies=[
-        Depends(require_permission(AuthorizationAction.READ, ResourceType.REPORT))
-    ],
 )
 async def get_report_by_id(
     request: GetReportByIdRequestDependency,
     handler: ReportHandlerDependency,
     actor: AuthenticatedActor,
-    authorization: AuthorizationDependency,
-) -> ReportResponseDto:
-    report = await handler.get_report_by_id(request)
-    ensure_permission(
-        actor,
-        authorization,
-        AuthorizationAction.READ,
-        ResourceType.REPORT,
-        report.sample.client.id,
-    )
-    return report
+) -> ReportWithActionsResponseDto:
+    return await handler.get_report_by_id(request, actor)
 
 
 @router.put(
     "/{report_id}",
     response_model=ReportResponseDto,
     status_code=200,
-    dependencies=[
-        Depends(require_permission(AuthorizationAction.UPDATE, ResourceType.REPORT))
-    ],
 )
 async def update_report(
     request: UpdateReportRequestDependency,
     handler: ReportHandlerDependency,
+    actor: AuthenticatedActor,
 ) -> ReportResponseDto:
-    return await handler.update_report(request)
+    return await handler.update_report(request, actor)
 
 
 @router.delete(
     "/{report_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[
-        Depends(require_permission(AuthorizationAction.DELETE, ResourceType.REPORT))
-    ],
 )
 async def delete_report(
     request: DeleteReportRequestDependency,
+    actor: AuthenticatedActor,
     handler: ReportHandlerDependency,
 ) -> None:
-    return await handler.delete_report(request)
+    return await handler.delete_report(request, actor)
 
 
 @router.patch(
     "/{report_id}/approve",
     response_model=ReportResponseDto,
     status_code=status.HTTP_200_OK,
-    dependencies=[
-        Depends(require_permission(AuthorizationAction.APPROVE, ResourceType.REPORT))
-    ],
 )
 async def approve_report(
     request: ApproveReportRequestDependency,
     handler: ReportHandlerDependency,
+    actor: AuthenticatedActor,
 ) -> ReportResponseDto:
-    return await handler.set_report_status(request)
+    return await handler.set_report_status(request, actor)

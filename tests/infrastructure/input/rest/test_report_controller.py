@@ -63,3 +63,35 @@ async def test_report_routes_with_real_handler_and_mapper():
             assert response.json()["type"] == "REPORT_NOT_FOUND"
     finally:
         app.dependency_overrides.pop(get_report_handler, None)
+
+
+async def test_report_usecase_injects_links_with_the_report_session():
+    from typing import Annotated
+    from unittest.mock import AsyncMock
+
+    from fastapi import Depends, FastAPI
+
+    from domain.usecase.report_use_case import ReportUseCase
+    from infrastructure.configuration.dependencies import (
+        get_db_session,
+        get_report_usecase,
+    )
+
+    probe = FastAPI()
+    session = AsyncMock()
+    probe.dependency_overrides[get_db_session] = lambda: session
+
+    @probe.get("/")
+    async def check_usecase(
+        service: Annotated[ReportUseCase, Depends(get_report_usecase)],
+    ):
+        assert service.report_test_persistence_port.session is session
+        assert service.report_persistence_port.repository.session is session
+        return {"injected": True}
+
+    async with AsyncClient(
+        transport=ASGITransport(app=probe), base_url="http://test"
+    ) as client:
+        response = await client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"injected": True}

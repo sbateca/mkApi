@@ -7,3 +7,4 @@ class AuthorizationAction(Enum):
     UPDATE = "update"
     DELETE = "delete"
     APPROVE = "approve"
+    DOWNLOAD = "download"

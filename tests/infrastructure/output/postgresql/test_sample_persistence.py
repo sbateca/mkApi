@@ -136,3 +136,49 @@ async def test_sample_adapter_returns_none_for_missing_entities():
         await adapter.get_sample_by_sample_code_excluding_id("missing", str(SAMPLE_ID))
         is None
     )
+
+
+@pytest.mark.parametrize(
+    ("changes_client", "has_approved_report", "blocked"),
+    [(True, True, True), (True, False, False), (False, True, False)],
+)
+async def test_sample_repository_guards_client_reassignment(
+    changes_client, has_approved_report, blocked
+):
+    from unittest.mock import Mock
+    from uuid import uuid4
+
+    from sqlalchemy.dialects import postgresql
+
+    from domain.exception.sample_exception import (
+        SampleClientChangeWithApprovedReportError,
+    )
+    from infrastructure.output.postgresql.repository.sample_repository import (
+        SamplePostgreSQLRepository,
+    )
+
+    session = AsyncMock()
+    current_sample, approved = Mock(), Mock()
+    current_sample.scalar_one_or_none.return_value = CLIENT_ID
+    approved.scalar_one.return_value = has_approved_report
+    session.execute.side_effect = [current_sample, approved]
+    repository = SamplePostgreSQLRepository(session)
+    entity = PersistenceEntity(
+        id=SAMPLE_ID, client_id=uuid4() if changes_client else CLIENT_ID
+    )
+    repository.get_sample_by_id = AsyncMock(return_value=entity)
+
+    if blocked:
+        with pytest.raises(SampleClientChangeWithApprovedReportError):
+            await repository.update_sample(entity)
+        session.merge.assert_not_awaited()
+        session.commit.assert_not_awaited()
+        session.rollback.assert_awaited_once()
+    else:
+        assert await repository.update_sample(entity) is entity
+        session.merge.assert_awaited_once_with(entity)
+        session.commit.assert_awaited_once()
+
+    first_query = session.execute.await_args_list[0].args[0]
+    assert "FOR NO KEY UPDATE" in str(first_query.compile(dialect=postgresql.dialect()))
+    assert session.execute.await_count == (2 if changes_client else 1)
