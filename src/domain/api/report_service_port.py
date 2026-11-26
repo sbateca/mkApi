@@ -1,10 +1,15 @@
 from abc import ABC, abstractmethod
 
+from domain.model.action_decision import ActionDecision
 from domain.model.authenticated_user import AuthenticatedUser
 from domain.model.report import Report, ReportWithActions
 
 
 class ReportServicePort(ABC):
+    @abstractmethod
+    def get_create_decision(self, actor: AuthenticatedUser) -> ActionDecision:
+        pass
+
     @abstractmethod
     async def get_reports(self, actor: AuthenticatedUser) -> list[ReportWithActions]:
         pass

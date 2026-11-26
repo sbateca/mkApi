@@ -111,8 +111,11 @@ class ReportUseCase(ReportServicePort):
             raise ReportNotFoundError()
         return report
 
+    def get_create_decision(self, actor: AuthenticatedUser) -> ActionDecision:
+        return self._get_action_decision(actor, AuthorizationAction.CREATE)
+
     async def create_report(self, report: Report, actor: AuthenticatedUser) -> Report:
-        self._check_action_decision(actor, AuthorizationAction.CREATE)
+        self._require_allowed(self.get_create_decision(actor))
         await self._validate_report_relations(report)
 
         report.status = ReportStatus.DRAFT.value
@@ -212,7 +215,10 @@ class ReportUseCase(ReportServicePort):
         action: AuthorizationAction,
         report: Report | None = None,
     ) -> None:
-        decision = self._get_action_decision(actor, action, report)
+        self._require_allowed(self._get_action_decision(actor, action, report))
+
+    @staticmethod
+    def _require_allowed(decision: ActionDecision) -> None:
         if not decision.allowed:
             raise ReportActionDeniedError(decision.code, decision.reason)
 
