@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from domain.api.analyte_service_port import AnalyteServicePort
 from domain.exception.analyte_exception import (
@@ -30,7 +30,7 @@ class AnalyteUseCase(AnalyteServicePort):
             name=analyte.name,
             test_type_id=str(analyte.test_type.id),
         )
-        await self.__validate_name_is_available(analyte.name)
+        await self.__validate_name_is_available(analyte.name, analyte.test_type.id)
         analyte.test_type = await self.__request_test_type_by_id(
             str(analyte.test_type.id)
         )
@@ -61,7 +61,7 @@ class AnalyteUseCase(AnalyteServicePort):
         analyte = await self.__request_analyte_by_id(analyte_id)
         stored_analyte = (
             await self.analyte_persistence_port.get_analyte_by_name_excluding_id(
-                updated_analyte.name, analyte_id
+                updated_analyte.name, updated_analyte.test_type.id, analyte_id
             )
         )
         if stored_analyte:
@@ -85,8 +85,10 @@ class AnalyteUseCase(AnalyteServicePort):
         await self.analyte_persistence_port.delete_analyte(analyte_id)
         self.logger.info("Analyte deleted", analyte_id=analyte_id)
 
-    async def __validate_name_is_available(self, name: str) -> None:
-        stored_analyte = await self.analyte_persistence_port.get_analyte_by_name(name)
+    async def __validate_name_is_available(self, name: str, test_type_id: UUID) -> None:
+        stored_analyte = await self.analyte_persistence_port.get_analyte_by_name(
+            name, test_type_id
+        )
         if stored_analyte:
             self.logger.warning("Analyte already exists")
             raise AnalyteAlreadyExistsError()

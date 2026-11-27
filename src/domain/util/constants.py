@@ -15,7 +15,9 @@ TEST_TYPE_CONSISTENCY_ERROR_MESSAGE = (
     "Test type inconsistency between test and analyte."
 )
 
-ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE = "The analyte already exists."
+ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE = (
+    "An analyte with this name already exists for this test type."
+)
 ANALYTE_NOT_FOUND_ERROR_MESSAGE = "The analyte was not found."
 
 SAMPLE_TYPE_ALREADY_EXISTS_ERROR_MESSAGE = "The sample type already exists."
@@ -26,6 +28,9 @@ CRITERIA_NOT_FOUND_ERROR_MESSAGE = "The criteria was not found."
 
 SAMPLE_ALREADY_EXISTS_ERROR_MESSAGE = "The sample already exists."
 SAMPLE_NOT_FOUND_ERROR_MESSAGE = "The sample was not found."
+SAMPLE_IN_USE_ERROR_MESSAGE = (
+    "The sample cannot be deleted while linked to tests or reports."
+)
 SAMPLE_CLIENT_CHANGE_WITH_APPROVED_REPORT_ERROR_MESSAGE = (
     "The client cannot be changed when the sample has an approved report."
 )

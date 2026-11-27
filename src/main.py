@@ -3,6 +3,7 @@ import os
 from fastapi import Depends, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.types import ASGIApp
 
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
@@ -32,6 +33,7 @@ from domain.exception.report_exception import (
 from domain.exception.role_exception import RoleAlreadyExistsError, RoleNotFoundError
 from domain.exception.sample_exception import (
     SampleAlreadyExistsError,
+    SampleInUseError,
     SampleNotFoundError,
 )
 from domain.exception.sample_type_exception import (
@@ -71,6 +73,7 @@ from infrastructure.input.rest.exception.exception_handler import (
     role_already_exists_exception_handler,
     role_not_found_exception_handler,
     sample_already_exists_exception_handler,
+    sample_in_use_exception_handler,
     sample_not_found_exception_handler,
     sample_type_already_exists_exception_handler,
     sample_type_not_found_exception_handler,
@@ -94,11 +97,6 @@ from infrastructure.input.rest.test_controller import router as test_router
 from infrastructure.input.rest.test_type_controller import router as test_type_router
 from infrastructure.input.rest.user_controller import router as user_router
 
-app = FastAPI(
-    title="Microlab API",
-    version="1.0.0",
-)
-
 cors_origins = [
     origin.strip()
     for origin in os.getenv(
@@ -106,13 +104,20 @@ cors_origins = [
     ).split(",")
     if origin.strip()
 ]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
-)
+
+
+class MicrolabAPI(FastAPI):
+    def build_middleware_stack(self) -> ASGIApp:
+        return CORSMiddleware(
+            super().build_middleware_stack(),
+            allow_origins=cors_origins,
+            allow_credentials=True,
+            allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+            allow_headers=["Authorization", "Content-Type"],
+        )
+
+
+app = MicrolabAPI(title="Microlab API", version="1.0.0")
 
 app.include_router(authentication_router)
 authenticated = [Depends(get_authenticated_user)]
@@ -187,6 +192,7 @@ app.add_exception_handler(
     SampleNotFoundError,
     sample_not_found_exception_handler,
 )
+app.add_exception_handler(SampleInUseError, sample_in_use_exception_handler)
 app.add_exception_handler(TestNotFoundError, test_not_found_exception_handler)
 app.add_exception_handler(RoleAlreadyExistsError, role_already_exists_exception_handler)
 app.add_exception_handler(RoleNotFoundError, role_not_found_exception_handler)

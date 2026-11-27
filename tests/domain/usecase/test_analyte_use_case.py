@@ -112,7 +112,7 @@ async def test_update_analyte_updates_name_and_test_type():
     assert result.name == "pH"
     assert result.test_type.id == TEST_TYPE_ID
     analyte_port.get_analyte_by_name_excluding_id.assert_awaited_once_with(
-        "pH", str(ANALYTE_ID)
+        "pH", TEST_TYPE_ID, str(ANALYTE_ID)
     )
     analyte_port.update_analyte.assert_awaited_once_with(current)
 

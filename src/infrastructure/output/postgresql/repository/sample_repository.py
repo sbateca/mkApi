@@ -1,9 +1,12 @@
+from asyncpg.exceptions import ForeignKeyViolationError
 from sqlalchemy import delete, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from domain.exception.sample_exception import (
     SampleClientChangeWithApprovedReportError,
+    SampleInUseError,
     SampleNotFoundError,
 )
 from domain.util.constants import ReportStatus
@@ -95,7 +98,16 @@ class SamplePostgreSQLRepository:
         return await self.get_sample_by_id(str(entity.id))
 
     async def delete_sample(self, sample_id: str) -> None:
-        await self.session.execute(
-            delete(SampleEntity).where(SampleEntity.id == sample_id)
-        )
-        await self.session.commit()
+        try:
+            await self.session.execute(
+                delete(SampleEntity).where(SampleEntity.id == sample_id)
+            )
+            await self.session.commit()
+        except IntegrityError as error:
+            await self.session.rollback()
+            if (
+                getattr(error.orig, "sqlstate", None)
+                == ForeignKeyViolationError.sqlstate
+            ):
+                raise SampleInUseError() from error
+            raise

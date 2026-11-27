@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from domain.model.analyte import Analyte
 
@@ -17,12 +18,14 @@ class AnalytePersistencePort(ABC):
         pass
 
     @abstractmethod
-    async def get_analyte_by_name(self, name: str) -> Analyte | None:
+    async def get_analyte_by_name(
+        self, name: str, test_type_id: UUID
+    ) -> Analyte | None:
         pass
 
     @abstractmethod
     async def get_analyte_by_name_excluding_id(
-        self, name: str, analyte_id: str
+        self, name: str, test_type_id: UUID, analyte_id: str
     ) -> Analyte | None:
         pass
 

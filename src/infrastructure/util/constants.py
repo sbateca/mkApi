@@ -32,6 +32,7 @@ class CriteriaErrorType(Enum):
 
 
 class SampleErrorType(Enum):
+    SAMPLE_IN_USE = "SAMPLE_IN_USE"
     SAMPLE_ALREADY_EXISTS = "SAMPLE_ALREADY_EXISTS"
     SAMPLE_NOT_FOUND = "SAMPLE_NOT_FOUND"
 

@@ -68,9 +68,11 @@ async def test_analyte_adapter_maps_and_delegates_all_operations():
     assert await adapter.save_analyte(domain()) == domain()
     assert await adapter.get_analytes() == [domain()]
     assert await adapter.get_analyte_by_id(str(ANALYTE_ID)) == domain()
-    assert await adapter.get_analyte_by_name("pH") == domain()
+    assert await adapter.get_analyte_by_name("pH", TEST_TYPE_ID) == domain()
     assert (
-        await adapter.get_analyte_by_name_excluding_id("pH", str(ANALYTE_ID))
+        await adapter.get_analyte_by_name_excluding_id(
+            "pH", TEST_TYPE_ID, str(ANALYTE_ID)
+        )
         == domain()
     )
     assert await adapter.update_analyte(domain()) == domain()
@@ -89,8 +91,32 @@ async def test_analyte_adapter_returns_none_for_missing_entities():
     )
 
     assert await adapter.get_analyte_by_id(str(ANALYTE_ID)) is None
-    assert await adapter.get_analyte_by_name("missing") is None
+    assert await adapter.get_analyte_by_name("missing", TEST_TYPE_ID) is None
     assert (
-        await adapter.get_analyte_by_name_excluding_id("missing", str(ANALYTE_ID))
+        await adapter.get_analyte_by_name_excluding_id(
+            "missing", TEST_TYPE_ID, str(ANALYTE_ID)
+        )
         is None
     )
+
+
+async def test_analyte_duplicate_lookup_checks_name_and_test_type():
+    from unittest.mock import Mock
+
+    from infrastructure.output.postgresql.repository.analyte_repository import (
+        AnalytePostgreSQLRepository,
+    )
+
+    session = AsyncMock()
+    result = Mock()
+    result.scalar_one_or_none.return_value = None
+    session.execute.return_value = result
+    repository = AnalytePostgreSQLRepository(session)
+
+    assert (
+        await repository.get_analyte_by_name("Coliformes totales", TEST_TYPE_ID) is None
+    )
+    statement = session.execute.await_args.args[0].compile()
+    assert "analytes.name =" in str(statement)
+    assert "analytes.test_type_id =" in str(statement)
+    assert TEST_TYPE_ID in statement.params.values()
