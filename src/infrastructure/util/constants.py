@@ -1,5 +1,7 @@
 from enum import Enum
 
+REPORT_PDF_UNAVAILABLE_MESSAGE = "Report PDF storage is unavailable."
+
 
 class ClientErrorType(Enum):
     CLIENT_ALREADY_EXISTS = "CLIENT_ALREADY_EXISTS"

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from application.dto.request import (
     DeleteReportRequestDto,
@@ -20,11 +20,15 @@ from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
 from application.handler.report_handler_interface import ReportHandlerInterface
+from domain.exception.report_exception import ReportPdfUnavailableError
 from domain.util.constants import ReportStatus
-from infrastructure.configuration.dependencies import get_report_handler
+from infrastructure.configuration.dependencies import (
+    get_report_handler,
+)
 from infrastructure.input.rest.security.authorization import (
     AuthenticatedActor,
 )
+from infrastructure.util.constants import REPORT_PDF_UNAVAILABLE_MESSAGE
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 ReportHandlerDependency = Annotated[ReportHandlerInterface, Depends(get_report_handler)]
@@ -168,3 +172,30 @@ async def approve_report(
     actor: AuthenticatedActor,
 ) -> ReportResponseDto:
     return await handler.set_report_status(request, actor)
+
+
+@router.get(
+    "/{report_id}/download",
+    response_class=Response,
+    responses={200: {"content": {"application/pdf": {}}}},
+)
+async def download_report(
+    request: GetReportByIdRequestDependency,
+    actor: AuthenticatedActor,
+    handler: ReportHandlerDependency,
+) -> Response:
+    try:
+        pdf = await handler.download_report(request, actor)
+    except ReportPdfUnavailableError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=REPORT_PDF_UNAVAILABLE_MESSAGE,
+        ) from error
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="reporte-{request.report_id}.pdf"',
+            "Cache-Control": "private, no-store",
+        },
+    )

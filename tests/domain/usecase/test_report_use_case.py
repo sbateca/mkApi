@@ -207,9 +207,11 @@ async def test_report_download_requires_perm_and_approval(
 
     if denied_code:
         with pytest.raises(ReportActionDeniedError, match=denied_code):
-            await usecase.get_report_for_download(str(item.id), actor)
+            await usecase.download_report(str(item.id), actor)
+        usecase.report_pdf_port.get_or_create.assert_not_awaited()
     else:
-        assert await usecase.get_report_for_download(str(item.id), actor) is item
+        assert await usecase.download_report(str(item.id), actor) == b"%PDF-test"
+        usecase.report_pdf_port.get_or_create.assert_awaited_once_with(item)
 
 
 @pytest.mark.parametrize(
@@ -226,10 +228,10 @@ async def test_internal_roles_can_download_any_approved_report(role):
 
     item.status = "Draft"
     with pytest.raises(ReportActionDeniedError, match="report_not_approved"):
-        await usecase.get_report_for_download(str(item.id), actor)
+        await usecase.download_report(str(item.id), actor)
 
     item.status = "Approved"
-    assert await usecase.get_report_for_download(str(item.id), actor) is item
+    assert await usecase.download_report(str(item.id), actor) == b"%PDF-test"
 
 
 @pytest.mark.parametrize("status", ["Approved", "Issued"])

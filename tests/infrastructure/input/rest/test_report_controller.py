@@ -127,3 +127,41 @@ async def test_collection_actions_reports_create_permission_without_listing_repo
                     ).status_code == 403
         finally:
             app.dependency_overrides[get_authenticated_user] = original_actor
+
+
+async def test_download_authorizes_before_generating_and_returns_pdf(monkeypatch):
+    from unittest.mock import Mock
+
+    from domain.exception.report_exception import ReportPdfUnavailableError
+    from infrastructure.configuration.dependencies import get_report_usecase
+    from infrastructure.output.pdf.report_pdf_adapter import ReportPdfAdapter
+
+    usecase, persistence, _, _ = service()
+    item = report()
+    persistence.get_report_by_id.return_value = item
+    storage = Mock()
+    storage.get_or_create.side_effect = lambda key, generate: generate()
+    usecase.report_pdf_port = ReportPdfAdapter(storage)
+    monkeypatch.setitem(app.dependency_overrides, get_report_usecase, lambda: usecase)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        url = f"/reports/{item.id}/download"
+        denied = await client.get(url)
+        assert denied.status_code == 403
+        storage.get_or_create.assert_not_called()
+
+        item.status = "approved"
+        response = await client.get(url)
+        storage.get_or_create.side_effect = ReportPdfUnavailableError()
+        unavailable = await client.get(url)
+
+    assert unavailable.status_code == 503
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-disposition"] == (
+        f'attachment; filename="reporte-{item.id}.pdf"'
+    )
+    assert response.content.startswith(b"%PDF-")
+    assert storage.get_or_create.call_args.args[0] == f"reports/v2/{item.id}.pdf"

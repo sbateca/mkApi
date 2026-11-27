@@ -3,7 +3,7 @@ HOST_PORT ?= 8000
 POSTGRES_HOST_PORT ?= 5433
 ENV_FILE ?= .env.dev
 
-.PHONY: check-env-file run run-otel test test-coverage lint lint-fix format format-check quality clean docker-up-dev docker-up-prod docker-down docker-logs docker-logs-otel docker-migrate revision migrate downgrade current history
+.PHONY: check-env-file run run-otel test test-coverage lint lint-fix format format-check quality clean docker-up-dev docker-up-localstack docker-up-localstack-licensed docker-up-prod docker-down docker-logs docker-logs-otel docker-migrate revision migrate downgrade current history
 
 check-env-file:
 	@test -f "$(ENV_FILE)" || (echo "Environment file not found: $(ENV_FILE)" && exit 1)
@@ -57,8 +57,14 @@ clean:
 	find . -type d -name ".ruff_cache" -exec rm -rf {} +
 	rm -rf .coverage coverage.xml htmlcov
 
-docker-up-dev:
-	docker compose --env-file .env.dev up --build
+docker-up-dev: check-env-file
+	docker compose --env-file "$(ENV_FILE)" -f compose.yml -f compose.localstack.yml up --build
+
+docker-up-localstack: check-env-file
+	docker compose --env-file "$(ENV_FILE)" -f compose.yml -f compose.localstack.yml up -d --build --wait mkapi
+
+docker-up-localstack-licensed: check-env-file
+	docker compose --env-file "$(ENV_FILE)" -f compose.yml -f compose.localstack.yml -f compose.localstack.licensed.yml up -d --build --wait mkapi
 
 docker-up-prod:
 	docker compose --env-file .env.prod up --build

@@ -1,0 +1,33 @@
+services:
+  mkapi:
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      REPORT_PDF_BUCKET: ${LOCAL_REPORT_PDF_BUCKET:-mkapi-report-pdfs}
+      REPORT_PDF_REGION: ${LOCAL_REPORT_PDF_REGION:-us-east-1}
+      REPORT_PDF_ENDPOINT_URL: ${LOCAL_REPORT_PDF_ENDPOINT_URL:-http://localstack:4566}
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+
+  localstack:
+    image: ${LOCALSTACK_IMAGE:-localstack/localstack:4.14.0}
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      SERVICES: s3
+      PERSISTENCE: "1"
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:-}
+      REPORT_PDF_BUCKET: ${LOCAL_REPORT_PDF_BUCKET:-mkapi-report-pdfs}
+      REPORT_PDF_REGION: ${LOCAL_REPORT_PDF_REGION:-us-east-1}
+    volumes:
+      - mkapi-localstack-data:/var/lib/localstack
+      - ./scripts/localstack/create-report-bucket.sh:/etc/localstack/init/ready.d/create-report-bucket.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "awslocal s3api head-bucket --bucket \"$$REPORT_PDF_BUCKET\" --region \"$$REPORT_PDF_REGION\""]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+
+volumes:
+  mkapi-localstack-data:

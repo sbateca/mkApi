@@ -66,6 +66,7 @@ from domain.spi.criteria_persistence_port import CriteriaPersistencePort
 from domain.spi.password_hasher_port import PasswordHasherPort
 from domain.spi.refresh_token_persistence_port import RefreshTokenPersistencePort
 from domain.spi.refresh_token_port import RefreshTokenPort
+from domain.spi.report_pdf_port import ReportPdfPort
 from domain.spi.report_persistence_port import ReportPersistencePort
 from domain.spi.report_test_persistence_port import ReportTestPersistencePort
 from domain.spi.role_persistence_port import RolePersistencePort
@@ -94,6 +95,7 @@ from infrastructure.output.authorization.casbin_authorization_adapter import (
 from infrastructure.output.observability.logger_adapter import (
     LoggerAdapter,
 )
+from infrastructure.output.pdf.report_pdf_adapter import ReportPdfAdapter
 from infrastructure.output.postgresql.adapter.analysis_method_persistence_adapter import (
     AnalysisMethodPersistenceAdapter,
 )
@@ -202,6 +204,7 @@ from infrastructure.output.postgresql.repository.user_repository import (
 from infrastructure.output.security.bcrypt_password_hasher import BcryptPasswordHasher
 from infrastructure.output.security.jwt_adapter import JwtAdapter
 from infrastructure.output.security.refresh_token_adapter import RefreshTokenAdapter
+from infrastructure.output.storage.s3_report_pdf_storage import S3ReportPdfStorage
 
 
 @lru_cache
@@ -801,7 +804,24 @@ def get_action_policy(
     return ActionPolicy(authorization_port)
 
 
+@lru_cache
+def get_report_pdf_storage() -> S3ReportPdfStorage:
+    settings = get_settings()
+    return S3ReportPdfStorage(
+        settings.report_pdf_bucket,
+        settings.report_pdf_region,
+        settings.report_pdf_endpoint_url,
+    )
+
+
+def get_report_pdf_port(
+    storage: Annotated[S3ReportPdfStorage, Depends(get_report_pdf_storage)],
+) -> ReportPdfPort:
+    return ReportPdfAdapter(storage)
+
+
 def get_report_usecase(
+    report_pdf_port: Annotated[ReportPdfPort, Depends(get_report_pdf_port)],
     reports_persistence_port: Annotated[
         ReportPersistencePort, Depends(get_report_persistence_adapter)
     ],
@@ -828,6 +848,7 @@ def get_report_usecase(
 ) -> ReportServicePort:
     return ReportUseCase(
         report_persistence_port=reports_persistence_port,
+        report_pdf_port=report_pdf_port,
         sample_persistence_port=sample_persistence_port,
         analyte_persistence_port=analyte_persistence_port,
         analysis_method_persistence_port=analysis_method_persistence_port,

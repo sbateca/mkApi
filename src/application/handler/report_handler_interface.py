@@ -43,6 +43,12 @@ class ReportHandlerInterface(ABC):
         pass
 
     @abstractmethod
+    async def download_report(
+        self, request: GetReportByIdRequestDto, actor: AuthenticatedUser
+    ) -> bytes:
+        pass
+
+    @abstractmethod
     async def update_report(
         self, request: UpdateReportRequestDto, actor: AuthenticatedUser
     ) -> ReportResponseDto:

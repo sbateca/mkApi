@@ -27,3 +27,7 @@ class ReportActionDeniedError(DomainError):
         super().__init__(
             REPORT_ACTION_DENIED_ERROR_MESSAGE.format(code=code, reason=reason)
         )
+
+
+class ReportPdfUnavailableError(DomainError):
+    pass

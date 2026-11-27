@@ -73,6 +73,9 @@ def service():
     return (
         ReportUseCase(
             report_persistence_port=reports,
+            report_pdf_port=AsyncMock(
+                get_or_create=AsyncMock(return_value=b"%PDF-test")
+            ),
             sample_persistence_port=samples,
             analyte_persistence_port=AsyncMock(
                 get_analyte_by_id=AsyncMock(return_value=test.analyte)
