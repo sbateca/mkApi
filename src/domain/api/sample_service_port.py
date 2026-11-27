@@ -9,7 +9,7 @@ class SampleServicePort(ABC):
         pass
 
     @abstractmethod
-    async def get_samples(self) -> list[Sample]:
+    async def get_samples(self, has_report: bool | None = None) -> list[Sample]:
         pass
 
     @abstractmethod

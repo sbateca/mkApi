@@ -7,14 +7,29 @@ from application.dto.request.user_request_dto import (
     UserIdRequestDto,
     UserRequestDto,
 )
+from application.dto.response.action_response_dto import ResourceActionsResponseDto
 from application.dto.response.user_response_dto import UserResponseDto
 from application.handler.user_handler_interface import UserHandlerInterface
 from domain.model.authorization_action import AuthorizationAction
 from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_user_handler
-from infrastructure.input.rest.security.authorization import require_permission
+from infrastructure.input.rest.security.authorization import (
+    AuthenticatedActor,
+    AuthorizationDependency,
+    require_permission,
+)
+from infrastructure.input.rest.security.resource_actions import (
+    get_resource_actions,
+    register_collection_actions,
+)
+
+
+class UserWithActionsResponseDto(UserResponseDto, ResourceActionsResponseDto):
+    pass
+
 
 router = APIRouter(prefix="/users", tags=["Users"])
+register_collection_actions(router, ResourceType.USER)
 Handler = Annotated[UserHandlerInterface, Depends(get_user_handler)]
 
 
@@ -40,26 +55,40 @@ async def create_user(request: UserRequestDto, handler: Handler) -> UserResponse
 
 @router.get(
     "",
-    response_model=list[UserResponseDto],
+    response_model=list[UserWithActionsResponseDto],
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.USER))
     ],
 )
-async def get_users(handler: Handler) -> list[UserResponseDto]:
-    return await handler.get_users()
+async def get_users(
+    handler: Handler,
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> list[UserWithActionsResponseDto]:
+    items = await handler.get_users()
+    actions = get_resource_actions(actor, authorization, ResourceType.USER)
+    return [
+        UserWithActionsResponseDto(**item.model_dump(), actions=actions)
+        for item in items
+    ]
 
 
 @router.get(
     "/{user_id}",
-    response_model=UserResponseDto,
+    response_model=UserWithActionsResponseDto,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.USER))
     ],
 )
 async def get_user(
-    request: Annotated[UserIdRequestDto, Depends(user_id_request)], handler: Handler
-) -> UserResponseDto:
-    return await handler.get_user(request)
+    request: Annotated[UserIdRequestDto, Depends(user_id_request)],
+    handler: Handler,
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> UserWithActionsResponseDto:
+    item = await handler.get_user(request)
+    actions = get_resource_actions(actor, authorization, ResourceType.USER)
+    return UserWithActionsResponseDto(**item.model_dump(), actions=actions)
 
 
 @router.put(

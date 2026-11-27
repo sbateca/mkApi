@@ -9,6 +9,7 @@ from application.dto.request import (
     UpdateCriteriaRequestDto,
 )
 from application.dto.response import CriteriaResponseDto
+from application.dto.response.action_response_dto import ResourceActionsResponseDto
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
@@ -16,9 +17,23 @@ from application.handler.criteria_handler_interface import CriteriaHandlerInterf
 from domain.model.authorization_action import AuthorizationAction
 from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_criteria_handler
-from infrastructure.input.rest.security.authorization import require_permission
+from infrastructure.input.rest.security.authorization import (
+    AuthenticatedActor,
+    AuthorizationDependency,
+    require_permission,
+)
+from infrastructure.input.rest.security.resource_actions import (
+    get_resource_actions,
+    register_collection_actions,
+)
+
+
+class CriteriaWithActionsResponseDto(CriteriaResponseDto, ResourceActionsResponseDto):
+    pass
+
 
 router = APIRouter(prefix="/criteria", tags=["Criteria"])
+register_collection_actions(router, ResourceType.CRITERIA)
 CriteriaHandlerDependency = Annotated[
     CriteriaHandlerInterface, Depends(get_criteria_handler)
 ]
@@ -83,7 +98,7 @@ async def create_criteria(
 
 @router.get(
     "",
-    response_model=list[CriteriaResponseDto],
+    response_model=list[CriteriaWithActionsResponseDto],
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.CRITERIA))
@@ -91,13 +106,20 @@ async def create_criteria(
 )
 async def get_criteria(
     handler: CriteriaHandlerDependency,
-) -> list[CriteriaResponseDto]:
-    return await handler.get_criteria()
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> list[CriteriaWithActionsResponseDto]:
+    items = await handler.get_criteria()
+    actions = get_resource_actions(actor, authorization, ResourceType.CRITERIA)
+    return [
+        CriteriaWithActionsResponseDto(**item.model_dump(), actions=actions)
+        for item in items
+    ]
 
 
 @router.get(
     "/{criteria_id}",
-    response_model=CriteriaResponseDto,
+    response_model=CriteriaWithActionsResponseDto,
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.CRITERIA))
@@ -106,8 +128,12 @@ async def get_criteria(
 async def get_criteria_by_id(
     request: GetCriteriaByIdRequestDependency,
     handler: CriteriaHandlerDependency,
-) -> CriteriaResponseDto:
-    return await handler.get_criteria_by_id(request)
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> CriteriaWithActionsResponseDto:
+    item = await handler.get_criteria_by_id(request)
+    actions = get_resource_actions(actor, authorization, ResourceType.CRITERIA)
+    return CriteriaWithActionsResponseDto(**item.model_dump(), actions=actions)
 
 
 @router.put(

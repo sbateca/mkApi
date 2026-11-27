@@ -94,7 +94,9 @@ def expected_response() -> dict:
 
 
 @pytest.mark.asyncio
-async def test_test_crud_routes_delegate_to_handler_with_ui_shape():
+async def test_test_crud_routes_delegate_to_handler_with_ui_shape(
+    admin_resource_actions,
+):
     item = build_test_response()
     handler = AsyncMock()
     handler.get_tests.return_value = [item]
@@ -116,8 +118,8 @@ async def test_test_crud_routes_delegate_to_handler_with_ui_shape():
 
         expected = expected_response()
         assert created.status_code == 405
-        assert listed.json() == [expected]
-        assert fetched.json() == expected
+        assert listed.json() == [expected | {"actions": admin_resource_actions}]
+        assert fetched.json() == expected | {"actions": admin_resource_actions}
         assert updated.json() == expected
         assert deleted.status_code == 204
         handler.create_test.assert_not_awaited()
@@ -200,3 +202,26 @@ async def test_get_test_maps_not_found_error():
         assert result.json()["type"] == "TEST_NOT_FOUND"
     finally:
         app.dependency_overrides.clear()
+
+
+async def test_linked_tests_advertise_no_direct_mutations(monkeypatch):
+    handler = AsyncMock()
+    item = build_test_response().model_copy(update={"report_linked": True})
+    handler.get_tests.return_value = [item]
+    handler.get_test_by_id.return_value = item
+    monkeypatch.setitem(app.dependency_overrides, get_test_handler, lambda: handler)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        listed = await client.get("/tests")
+        fetched = await client.get(f"/tests/{TEST_ID}")
+
+    assert listed.status_code == fetched.status_code == 200
+    for response in (listed.json()[0], fetched.json()):
+        assert "report_linked" not in response
+        actions = response["actions"]
+        assert actions["read"]["allowed"]
+        for action in ("update", "delete"):
+            assert not actions[action]["allowed"]
+            assert actions[action]["code"] == "linked_report_test"

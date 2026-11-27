@@ -86,7 +86,7 @@ async def test_create_client_returns_validation_error_for_missing_fields():
 
 
 @pytest.mark.asyncio
-async def test_get_clients_returns_ok_response_from_handler():
+async def test_get_clients_returns_ok_response_from_handler(admin_resource_actions):
     # Arrange
     response = ClientResponseDtoBuilder().build()
     handler = AsyncMock()
@@ -113,6 +113,7 @@ async def test_get_clients_returns_ok_response_from_handler():
                 "phone": response.phone,
                 "nit": response.nit,
                 "address": response.address,
+                "actions": admin_resource_actions,
             }
         ]
         handler.get_clients.assert_awaited_once()
@@ -121,7 +122,9 @@ async def test_get_clients_returns_ok_response_from_handler():
 
 
 @pytest.mark.asyncio
-async def test_get_client_by_id_returns_ok_response_from_handler():
+async def test_get_client_by_id_returns_ok_response_from_handler(
+    admin_resource_actions,
+):
     # Arrange
     response = ClientResponseDtoBuilder().build()
     handler = AsyncMock()
@@ -147,6 +150,7 @@ async def test_get_client_by_id_returns_ok_response_from_handler():
             "phone": response.phone,
             "nit": response.nit,
             "address": response.address,
+            "actions": admin_resource_actions,
         }
         handler.get_client_by_id.assert_awaited_once()
         delegated_request = handler.get_client_by_id.await_args.args[0]

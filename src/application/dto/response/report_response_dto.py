@@ -3,6 +3,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from application.dto.response.action_response_dto import (
+    ActionDecisionResponseDto,
+    CollectionActionsResponseDto,
+)
 from application.dto.response.sample_response_dto import SampleResponseDto
 from application.dto.response.test_response_dto import TestResponseDto
 from domain.util.constants import ReportStatus
@@ -29,11 +33,5 @@ class ReportWithActionsResponseDto(ReportResponseDto):
     actions: dict[str, "ActionDecisionResponseDto"] = Field(default_factory=dict)
 
 
-class ActionDecisionResponseDto(BaseModel):
-    allowed: bool
-    code: str | None = None
-    reason: str | None = None
-
-
-class ReportCollectionActionsResponseDto(BaseModel):
-    create: ActionDecisionResponseDto
+class ReportCollectionActionsResponseDto(CollectionActionsResponseDto):
+    pass

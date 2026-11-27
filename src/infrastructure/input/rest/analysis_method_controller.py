@@ -9,6 +9,7 @@ from application.dto.request import (
     UpdateAnalysisMethodRequestDto,
 )
 from application.dto.response import AnalysisMethodResponseDto
+from application.dto.response.action_response_dto import ResourceActionsResponseDto
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
@@ -18,9 +19,25 @@ from application.handler.analysis_method_handler_interface import (
 from domain.model.authorization_action import AuthorizationAction
 from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_analysis_method_handler
-from infrastructure.input.rest.security.authorization import require_permission
+from infrastructure.input.rest.security.authorization import (
+    AuthenticatedActor,
+    AuthorizationDependency,
+    require_permission,
+)
+from infrastructure.input.rest.security.resource_actions import (
+    get_resource_actions,
+    register_collection_actions,
+)
+
+
+class AnalysisMethodWithActionsResponseDto(
+    AnalysisMethodResponseDto, ResourceActionsResponseDto
+):
+    pass
+
 
 router = APIRouter(prefix="/analysis-methods", tags=["Analysis Methods"])
+register_collection_actions(router, ResourceType.ANALYSIS_METHOD)
 
 AnalysisMethodHandlerDependency = Annotated[
     AnalysisMethodHandlerInterface,
@@ -100,7 +117,7 @@ async def create_analysis_method(
 
 @router.get(
     "",
-    response_model=list[AnalysisMethodResponseDto],
+    response_model=list[AnalysisMethodWithActionsResponseDto],
     status_code=200,
     dependencies=[
         Depends(
@@ -110,13 +127,20 @@ async def create_analysis_method(
 )
 async def get_analysis_methods(
     handler: AnalysisMethodHandlerDependency,
-) -> list[AnalysisMethodResponseDto]:
-    return await handler.get_analysis_methods()
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> list[AnalysisMethodWithActionsResponseDto]:
+    items = await handler.get_analysis_methods()
+    actions = get_resource_actions(actor, authorization, ResourceType.ANALYSIS_METHOD)
+    return [
+        AnalysisMethodWithActionsResponseDto(**item.model_dump(), actions=actions)
+        for item in items
+    ]
 
 
 @router.get(
     "/{analysis_method_id}",
-    response_model=AnalysisMethodResponseDto,
+    response_model=AnalysisMethodWithActionsResponseDto,
     status_code=200,
     dependencies=[
         Depends(
@@ -127,8 +151,12 @@ async def get_analysis_methods(
 async def get_analysis_method_by_id(
     request: GetAnalysisMethodByIdRequestDependency,
     handler: AnalysisMethodHandlerDependency,
-) -> AnalysisMethodResponseDto:
-    return await handler.get_analysis_method_by_id(request)
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> AnalysisMethodWithActionsResponseDto:
+    item = await handler.get_analysis_method_by_id(request)
+    actions = get_resource_actions(actor, authorization, ResourceType.ANALYSIS_METHOD)
+    return AnalysisMethodWithActionsResponseDto(**item.model_dump(), actions=actions)
 
 
 @router.put(

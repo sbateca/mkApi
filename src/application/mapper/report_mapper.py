@@ -1,6 +1,6 @@
 from application.dto.request import GetReportByIdRequestDto, ReportRequestDto
+from application.dto.response.action_response_dto import ActionDecisionResponseDto
 from application.dto.response.report_response_dto import (
-    ActionDecisionResponseDto,
     ReportResponseDto,
     ReportWithActionsResponseDto,
 )

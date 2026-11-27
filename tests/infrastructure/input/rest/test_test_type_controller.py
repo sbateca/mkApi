@@ -18,7 +18,7 @@ TEST_TYPE_ID = UUID("f03c6e5a-30e0-4cad-9cd4-e18ae306254e")
 
 
 @pytest.mark.asyncio
-async def test_test_type_crud_routes_delegate_to_handler():
+async def test_test_type_crud_routes_delegate_to_handler(admin_resource_actions):
     response = TypeResponseDto(id=TEST_TYPE_ID, name="Physical-Chemical")
     handler = AsyncMock()
     handler.create_test_type.return_value = response
@@ -46,8 +46,8 @@ async def test_test_type_crud_routes_delegate_to_handler():
         expected = {"id": str(TEST_TYPE_ID), "name": "Physical-Chemical"}
         assert created.status_code == 201
         assert created.json() == expected
-        assert listed.json() == [expected]
-        assert fetched.json() == expected
+        assert listed.json() == [expected | {"actions": admin_resource_actions}]
+        assert fetched.json() == expected | {"actions": admin_resource_actions}
         assert updated.json() == expected
         assert deleted.status_code == 204
         handler.create_test_type.assert_awaited_once()

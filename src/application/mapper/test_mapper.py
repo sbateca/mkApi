@@ -60,6 +60,7 @@ class TestMapper:
                 name=test.criteria.name,
             ),
             result=test.result,
+            report_linked=test.report_linked,
         )
 
     def to_response_list(self, tests: list[Test]) -> list[TestResponseDto]:

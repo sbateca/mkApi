@@ -19,8 +19,10 @@ class SampleHandler(SampleHandlerInterface):
         created = await self.service.create_sample(self.mapper.to_sample(request))
         return self.mapper.to_response(created)
 
-    async def get_samples(self) -> list[SampleResponseDto]:
-        return self.mapper.to_response_list(await self.service.get_samples())
+    async def get_samples(
+        self, has_report: bool | None = None
+    ) -> list[SampleResponseDto]:
+        return self.mapper.to_response_list(await self.service.get_samples(has_report))
 
     async def get_sample_by_id(
         self, request: GetSampleByIdRequestDto

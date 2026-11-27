@@ -9,6 +9,7 @@ from application.dto.request import (
     UpdateSampleTypeRequestDto,
 )
 from application.dto.response import SampleTypeResponseDto
+from application.dto.response.action_response_dto import ResourceActionsResponseDto
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
@@ -18,9 +19,25 @@ from application.handler.sample_type_handler_interface import (
 from domain.model.authorization_action import AuthorizationAction
 from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_sample_type_handler
-from infrastructure.input.rest.security.authorization import require_permission
+from infrastructure.input.rest.security.authorization import (
+    AuthenticatedActor,
+    AuthorizationDependency,
+    require_permission,
+)
+from infrastructure.input.rest.security.resource_actions import (
+    get_resource_actions,
+    register_collection_actions,
+)
+
+
+class SampleTypeWithActionsResponseDto(
+    SampleTypeResponseDto, ResourceActionsResponseDto
+):
+    pass
+
 
 router = APIRouter(prefix="/sample-types", tags=["Sample Types"])
+register_collection_actions(router, ResourceType.SAMPLE_TYPE)
 SampleTypeHandlerDependency = Annotated[
     SampleTypeHandlerInterface, Depends(get_sample_type_handler)
 ]
@@ -93,7 +110,7 @@ async def create_sample_type(
 
 @router.get(
     "",
-    response_model=list[SampleTypeResponseDto],
+    response_model=list[SampleTypeWithActionsResponseDto],
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.SAMPLE_TYPE))
@@ -101,13 +118,20 @@ async def create_sample_type(
 )
 async def get_sample_types(
     handler: SampleTypeHandlerDependency,
-) -> list[SampleTypeResponseDto]:
-    return await handler.get_sample_types()
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> list[SampleTypeWithActionsResponseDto]:
+    items = await handler.get_sample_types()
+    actions = get_resource_actions(actor, authorization, ResourceType.SAMPLE_TYPE)
+    return [
+        SampleTypeWithActionsResponseDto(**item.model_dump(), actions=actions)
+        for item in items
+    ]
 
 
 @router.get(
     "/{sample_type_id}",
-    response_model=SampleTypeResponseDto,
+    response_model=SampleTypeWithActionsResponseDto,
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.SAMPLE_TYPE))
@@ -116,8 +140,12 @@ async def get_sample_types(
 async def get_sample_type_by_id(
     request: GetSampleTypeByIdRequestDependency,
     handler: SampleTypeHandlerDependency,
-) -> SampleTypeResponseDto:
-    return await handler.get_sample_type_by_id(request)
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> SampleTypeWithActionsResponseDto:
+    item = await handler.get_sample_type_by_id(request)
+    actions = get_resource_actions(actor, authorization, ResourceType.SAMPLE_TYPE)
+    return SampleTypeWithActionsResponseDto(**item.model_dump(), actions=actions)
 
 
 @router.put(

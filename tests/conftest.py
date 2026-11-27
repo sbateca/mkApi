@@ -20,3 +20,11 @@ def authenticated_admin():
     yield
     app.dependency_overrides.pop(get_authenticated_user, None)
     app.dependency_overrides.pop(get_sample_persistence_adapter, None)
+
+
+@pytest.fixture
+def admin_resource_actions():
+    return {
+        action: {"allowed": True, "code": None, "reason": None}
+        for action in ("read", "update", "delete")
+    }

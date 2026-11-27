@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
@@ -9,14 +10,23 @@ from application.dto.request import (
     UpdateTestRequestDto,
 )
 from application.dto.response import TestResponseDto
+from application.dto.response.action_response_dto import ResourceActionsResponseDto
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
 from application.handler.test_handler_interface import TestHandlerInterface
+from domain.exception.sample_exception import SampleNotFoundError
+from domain.model.action_decision import ActionDecision
+from domain.model.authenticated_user import AuthenticatedUser
 from domain.model.authorization_action import AuthorizationAction
 from domain.model.authorization_resource import AuthorizationResource
+from domain.spi.authorization_port import AuthorizationPort
 from domain.spi.sample_persistence_port import SamplePersistencePort
-from domain.util.constants import ResourceType
+from domain.util.constants import (
+    LINKED_REPORT_TEST_ERROR_MESSAGE,
+    ActionDecisionCode,
+    ResourceType,
+)
 from infrastructure.configuration.dependencies import (
     get_sample_persistence_adapter,
     get_test_handler,
@@ -28,12 +38,45 @@ from infrastructure.input.rest.security.authorization import (
     has_unrestricted_permission,
     require_permission,
 )
+from infrastructure.input.rest.security.resource_actions import (
+    get_resource_actions,
+    register_collection_actions,
+)
+
+
+class TestWithActionsResponseDto(TestResponseDto, ResourceActionsResponseDto):
+    pass
+
 
 router = APIRouter(prefix="/tests", tags=["Tests"])
+register_collection_actions(router, ResourceType.TEST, supports_create=False)
 TestHandlerDependency = Annotated[TestHandlerInterface, Depends(get_test_handler)]
 SamplePersistenceDependency = Annotated[
     SamplePersistencePort, Depends(get_sample_persistence_adapter)
 ]
+
+
+def _with_test_actions(
+    test: TestResponseDto,
+    actor: AuthenticatedUser,
+    authorization: AuthorizationPort,
+    client_id: UUID | None,
+) -> TestWithActionsResponseDto:
+    linked = (
+        ActionDecision(
+            allowed=False,
+            code=ActionDecisionCode.LINKED_REPORT_TEST.value,
+            reason=LINKED_REPORT_TEST_ERROR_MESSAGE,
+        )
+        if test.report_linked
+        else None
+    )
+    return TestWithActionsResponseDto(
+        **test.model_dump(),
+        actions=get_resource_actions(
+            actor, authorization, ResourceType.TEST, client_id, blocked_mutation=linked
+        ),
+    )
 
 
 def _validation_error(error: ValueError) -> ApplicationRequestValidationError:
@@ -81,7 +124,7 @@ DeleteTestRequestDependency = Annotated[
 
 @router.get(
     "",
-    response_model=list[TestResponseDto],
+    response_model=list[TestWithActionsResponseDto],
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.TEST))
@@ -92,28 +135,32 @@ async def get_tests(
     actor: AuthenticatedActor,
     authorization: AuthorizationDependency,
     samples: SamplePersistenceDependency,
-) -> list[TestResponseDto]:
+) -> list[TestWithActionsResponseDto]:
     tests = await handler.get_tests()
-    if has_unrestricted_permission(
+    unrestricted = has_unrestricted_permission(
         actor, authorization, AuthorizationAction.READ, ResourceType.TEST
-    ):
-        return tests
-
+    )
     authorized_tests = []
     for test in tests:
-        sample = await samples.get_sample_by_id(test.sample_id)
-        if sample and authorization.is_allowed(
-            actor,
-            AuthorizationAction.READ,
-            AuthorizationResource(ResourceType.TEST, sample.client.id),
-        ):
-            authorized_tests.append(test)
+        client_id = None
+        if not unrestricted:
+            sample = await samples.get_sample_by_id(test.sample_id)
+            if sample is None or not authorization.is_allowed(
+                actor,
+                AuthorizationAction.READ,
+                AuthorizationResource(ResourceType.TEST, sample.client.id),
+            ):
+                continue
+            client_id = sample.client.id
+        authorized_tests.append(
+            _with_test_actions(test, actor, authorization, client_id)
+        )
     return authorized_tests
 
 
 @router.get(
     "/{test_id}",
-    response_model=TestResponseDto,
+    response_model=TestWithActionsResponseDto,
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.TEST))
@@ -125,20 +172,24 @@ async def get_test_by_id(
     actor: AuthenticatedActor,
     authorization: AuthorizationDependency,
     samples: SamplePersistenceDependency,
-) -> TestResponseDto:
+) -> TestWithActionsResponseDto:
     test = await handler.get_test_by_id(request)
+    client_id = None
     if not has_unrestricted_permission(
         actor, authorization, AuthorizationAction.READ, ResourceType.TEST
     ):
         sample = await samples.get_sample_by_id(test.sample_id)
+        if sample is None:
+            raise SampleNotFoundError()
+        client_id = sample.client.id
         ensure_permission(
             actor,
             authorization,
             AuthorizationAction.READ,
             ResourceType.TEST,
-            sample.client.id if sample else None,
+            client_id,
         )
-    return test
+    return _with_test_actions(test, actor, authorization, client_id)
 
 
 @router.put(

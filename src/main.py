@@ -28,6 +28,7 @@ from domain.exception.criteria_exception import (
 from domain.exception.domain_exception import DomainError
 from domain.exception.report_exception import (
     ReportActionDeniedError,
+    ReportAlreadyExistsError,
     ReportNotFoundError,
 )
 from domain.exception.role_exception import RoleAlreadyExistsError, RoleNotFoundError
@@ -68,6 +69,7 @@ from infrastructure.input.rest.exception.exception_handler import (
     criteria_not_found_exception_handler,
     domain_exception_handler,
     report_action_denied_exception_handler,
+    report_already_exists_exception_handler,
     report_not_found_exception_handler,
     request_validation_exception_handler,
     role_already_exists_exception_handler,
@@ -202,6 +204,9 @@ app.add_exception_handler(AuthenticationError, authentication_exception_handler)
 app.add_exception_handler(DomainError, domain_exception_handler)
 app.add_exception_handler(Exception, unexpected_exception_handler)
 
+app.add_exception_handler(
+    ReportAlreadyExistsError, report_already_exists_exception_handler
+)
 app.add_exception_handler(ReportNotFoundError, report_not_found_exception_handler)
 app.add_exception_handler(
     ReportActionDeniedError, report_action_denied_exception_handler

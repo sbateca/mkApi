@@ -2,12 +2,14 @@ from uuid import UUID
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from domain.exception.domain_exception import DomainError
 from domain.exception.report_exception import (
     ReportActionDeniedError,
+    ReportAlreadyExistsError,
     ReportNotFoundError,
     ReportSampleConsistencyError,
 )
@@ -24,6 +26,7 @@ from infrastructure.output.postgresql.adapter.report_test_persistence_adapter im
 )
 from infrastructure.output.postgresql.entity.analyte_entity import AnalyteEntity
 from infrastructure.output.postgresql.entity.report_entity import (
+    REPORT_SAMPLE_INDEX,
     ReportEntity,
     report_tests,
 )
@@ -119,8 +122,12 @@ class ReportPostgreSQLRepository:
                 links = report_tests_port or ReportTestPersistenceAdapter(self.session)
                 await links.save_report_tests(report_id, test_ids)
             await self.session.commit()
-        except Exception:
+        except Exception as error:
             await self.session.rollback()
+            if isinstance(error, IntegrityError):
+                constraint = getattr(error.orig.__cause__, "constraint_name", None)
+                if constraint == REPORT_SAMPLE_INDEX:
+                    raise ReportAlreadyExistsError() from error
             raise
         return await self.get_report_by_id(str(report_id))
 

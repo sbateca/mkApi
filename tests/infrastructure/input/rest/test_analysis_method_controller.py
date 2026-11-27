@@ -12,7 +12,7 @@ ANALYSIS_METHOD_ID = UUID("c461270c-6682-4f51-9148-efb9fbaab44e")
 
 
 @pytest.mark.asyncio
-async def test_analysis_method_crud_routes_delegate_to_handler():
+async def test_analysis_method_crud_routes_delegate_to_handler(admin_resource_actions):
     response = AnalysisMethodResponseDto(id=ANALYSIS_METHOD_ID, name="NTC")
     handler = AsyncMock()
     handler.create_analysis_method.return_value = response
@@ -36,8 +36,8 @@ async def test_analysis_method_crud_routes_delegate_to_handler():
 
         assert created.status_code == 201
         assert created.json() == {"id": str(ANALYSIS_METHOD_ID), "name": "NTC"}
-        assert listed.json() == [created.json()]
-        assert fetched.json() == created.json()
+        assert listed.json() == [created.json() | {"actions": admin_resource_actions}]
+        assert fetched.json() == created.json() | {"actions": admin_resource_actions}
         assert updated.json() == created.json()
         assert deleted.status_code == 204
         handler.create_analysis_method.assert_awaited_once()

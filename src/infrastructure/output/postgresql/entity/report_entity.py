@@ -5,6 +5,7 @@ from sqlalchemy import (
     Column,
     Date,
     ForeignKey,
+    Index,
     Integer,
     String,
     Table,
@@ -26,16 +27,18 @@ report_tests = Table(
 )
 
 
+REPORT_SAMPLE_INDEX = "ix_reports_sample_id"
+
+
 class ReportEntity(Base):
     __tablename__ = "reports"
+    __table_args__ = (Index(REPORT_SAMPLE_INDEX, "sample_id", unique=True),)
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     report_number: Mapped[str] = mapped_column(String(100), nullable=False)
     report_date: Mapped[date] = mapped_column(Date, nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False)
-    sample_id: Mapped[UUID] = mapped_column(
-        ForeignKey("samples.id"), index=True, nullable=False
-    )
+    sample_id: Mapped[UUID] = mapped_column(ForeignKey("samples.id"), nullable=False)
     sample: Mapped[SampleEntity] = relationship()
     tests: Mapped[list[TestEntity]] = relationship(
         secondary=report_tests, order_by=report_tests.c.position, viewonly=True

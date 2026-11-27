@@ -9,6 +9,7 @@ from application.dto.request import (
     UpdateTestTypeRequestDto,
 )
 from application.dto.response import TestTypeResponseDto
+from application.dto.response.action_response_dto import ResourceActionsResponseDto
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
@@ -16,9 +17,23 @@ from application.handler.test_type_handler_interface import TestTypeHandlerInter
 from domain.model.authorization_action import AuthorizationAction
 from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_test_type_handler
-from infrastructure.input.rest.security.authorization import require_permission
+from infrastructure.input.rest.security.authorization import (
+    AuthenticatedActor,
+    AuthorizationDependency,
+    require_permission,
+)
+from infrastructure.input.rest.security.resource_actions import (
+    get_resource_actions,
+    register_collection_actions,
+)
+
+
+class TestTypeWithActionsResponseDto(TestTypeResponseDto, ResourceActionsResponseDto):
+    pass
+
 
 router = APIRouter(prefix="/test-types", tags=["Test Types"])
+register_collection_actions(router, ResourceType.TEST_TYPE)
 
 TestTypeHandlerDependency = Annotated[
     TestTypeHandlerInterface, Depends(get_test_type_handler)
@@ -88,7 +103,7 @@ async def create_test_type(
 
 @router.get(
     "",
-    response_model=list[TestTypeResponseDto],
+    response_model=list[TestTypeWithActionsResponseDto],
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.TEST_TYPE))
@@ -96,13 +111,20 @@ async def create_test_type(
 )
 async def get_test_types(
     handler: TestTypeHandlerDependency,
-) -> list[TestTypeResponseDto]:
-    return await handler.get_test_types()
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> list[TestTypeWithActionsResponseDto]:
+    items = await handler.get_test_types()
+    actions = get_resource_actions(actor, authorization, ResourceType.TEST_TYPE)
+    return [
+        TestTypeWithActionsResponseDto(**item.model_dump(), actions=actions)
+        for item in items
+    ]
 
 
 @router.get(
     "/{test_type_id}",
-    response_model=TestTypeResponseDto,
+    response_model=TestTypeWithActionsResponseDto,
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.TEST_TYPE))
@@ -111,8 +133,12 @@ async def get_test_types(
 async def get_test_type_by_id(
     request: GetTestTypeByIdRequestDependency,
     handler: TestTypeHandlerDependency,
-) -> TestTypeResponseDto:
-    return await handler.get_test_type_by_id(request)
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> TestTypeWithActionsResponseDto:
+    item = await handler.get_test_type_by_id(request)
+    actions = get_resource_actions(actor, authorization, ResourceType.TEST_TYPE)
+    return TestTypeWithActionsResponseDto(**item.model_dump(), actions=actions)
 
 
 @router.put(

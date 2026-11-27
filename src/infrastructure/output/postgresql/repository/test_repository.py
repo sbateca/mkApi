@@ -1,6 +1,6 @@
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, with_expression
 
 from domain.exception.test_exception import LinkedReportTestError, TestNotFoundError
 from infrastructure.output.postgresql.entity.analyte_entity import AnalyteEntity
@@ -12,10 +12,19 @@ class TestPostgreSQLRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    @staticmethod
+    def _linked_to_report():
+        return (
+            select(report_tests.c.test_id)
+            .where(report_tests.c.test_id == TestEntity.id)
+            .exists()
+        )
+
     async def get_tests(self) -> list[TestEntity]:
         result = await self.session.execute(
             select(TestEntity)
             .options(
+                with_expression(TestEntity.report_linked, self._linked_to_report()),
                 selectinload(TestEntity.test_type),
                 selectinload(TestEntity.analyte).selectinload(AnalyteEntity.test_type),
                 selectinload(TestEntity.analysis_method),
@@ -29,6 +38,7 @@ class TestPostgreSQLRepository:
         result = await self.session.execute(
             select(TestEntity)
             .options(
+                with_expression(TestEntity.report_linked, self._linked_to_report()),
                 selectinload(TestEntity.test_type),
                 selectinload(TestEntity.analyte).selectinload(AnalyteEntity.test_type),
                 selectinload(TestEntity.analysis_method),
@@ -65,14 +75,9 @@ class TestPostgreSQLRepository:
         )
 
     async def _write_unlinked_test(self, statement, test_id) -> None:
-        linked = (
-            select(report_tests.c.test_id)
-            .where(report_tests.c.test_id == TestEntity.id)
-            .exists()
-        )
         try:
             result = await self.session.execute(
-                statement.where(~linked).returning(TestEntity.id)
+                statement.where(~self._linked_to_report()).returning(TestEntity.id)
             )
             if result.scalar_one_or_none() is None:
                 existing = await self.session.execute(

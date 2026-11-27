@@ -52,6 +52,7 @@ class TestEntityMapper:
                 ),
                 criteria=self.criteria_entity_mapper.to_domain(entity.criteria),
                 result=entity.result,
+                report_linked=bool(entity.report_linked),
             )
         return None
 

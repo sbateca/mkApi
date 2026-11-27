@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from uuid import UUID
 
 from domain.model.analysis_method import AnalysisMethod
@@ -16,3 +16,4 @@ class Test:
     criteria: Criteria
     result: str
     id: UUID | None = None
+    report_linked: bool = field(default=False, compare=False)

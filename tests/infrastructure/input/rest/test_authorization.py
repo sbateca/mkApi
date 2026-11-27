@@ -55,6 +55,11 @@ async def test_client_only_receives_and_reads_own_samples():
         assert listed.status_code == 200
         assert [item["id"] for item in listed.json()] == [str(own_sample.id)]
         assert own.status_code == 200
+        for result in (listed.json()[0], own.json()):
+            assert {
+                action: decision["allowed"]
+                for action, decision in result["actions"].items()
+            } == {"read": True, "update": False, "delete": False}
         assert other.status_code == 403
     finally:
         app.dependency_overrides.pop(get_authenticated_user, None)
@@ -81,3 +86,70 @@ async def test_analyst_cannot_delete_samples():
     finally:
         app.dependency_overrides.pop(get_authenticated_user, None)
         app.dependency_overrides.pop(get_sample_handler, None)
+
+
+@pytest.mark.parametrize(
+    ("role", "allowed_paths"),
+    [
+        (
+            UserRole.ADMIN,
+            {
+                "analysis-methods",
+                "analytes",
+                "clients",
+                "criteria",
+                "roles",
+                "samples",
+                "sample-types",
+                "test-types",
+                "users",
+            },
+        ),
+        (
+            UserRole.TECHNICAL_DIRECTOR,
+            {
+                "analysis-methods",
+                "analytes",
+                "criteria",
+                "samples",
+                "sample-types",
+                "test-types",
+            },
+        ),
+        (UserRole.RECEPTIONIST, {"clients", "samples"}),
+        (UserRole.ANALYST, set()),
+        (UserRole.CLIENT, set()),
+    ],
+)
+async def test_collection_actions_reflect_permissions_without_loading_rows(
+    role,
+    allowed_paths,
+    monkeypatch,
+):
+    monkeypatch.setitem(
+        app.dependency_overrides,
+        get_authenticated_user,
+        lambda: AuthenticatedUser(USER_ID, frozenset({role}), CLIENT_ID),
+    )
+    paths = (
+        "analysis-methods",
+        "analytes",
+        "clients",
+        "criteria",
+        "roles",
+        "samples",
+        "sample-types",
+        "tests",
+        "test-types",
+        "users",
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        for path in paths:
+            response = await client.get(f"/{path}/actions")
+            assert response.status_code == 200
+            decision = response.json()["create"]
+            assert decision["allowed"] is (path in allowed_paths)
+            if path == "tests":
+                assert decision["code"] == "unsupported_action"
