@@ -363,3 +363,42 @@ IDs are rejected. An empty test list is allowed. Status is a nonblank string
 live sample/test data, so subsequent changes to those records appear in reports.
 
 Apply migration `6a4d8c2e1f90` with `make migrate` before using these routes.
+
+## PDF de reportes con LocalStack
+
+En la primera descarga de un reporte aprobado, la API genera el PDF, lo guarda
+como `reports/v2/<id>.pdf` en un bucket privado y responde con el archivo. Las
+descargas posteriores vuelven a comprobar el permiso y leen el PDF guardado.
+La versión en la ruta permite regenerar el PDF con un diseño nuevo y conservar
+las copias anteriores en el bucket.
+
+    make docker-up-localstack
+
+`make docker-up-dev` carga la misma configuración de S3 y deja los logs
+en primer plano.
+
+El override usa LocalStack Community 4.14.0 para las pruebas locales y crea el
+bucket indicado al iniciar. Puedes personalizar estos valores en `.env.dev`:
+
+    LOCAL_REPORT_PDF_BUCKET=mkapi-report-pdfs
+    LOCAL_REPORT_PDF_REGION=us-east-1
+    LOCAL_REPORT_PDF_ENDPOINT_URL=http://localstack:4566
+
+El endpoint se resuelve desde el contenedor de la API. Aplica los cambios
+volviendo a ejecutar el comando de Makefile.
+
+Si LocalStack Console o la extensión pide una instancia con licencia, añade
+`LOCALSTACK_AUTH_TOKEN` a `.env.dev` y ejecuta:
+
+    make docker-up-localstack-licensed
+
+Este modo usa LocalStack Pro 2026.11, publica S3 en la misma dirección local y
+usa un volumen separado para conservar los objetos de Community. El token
+se queda en el archivo local y lo recibe únicamente el contenedor de LocalStack.
+
+Para AWS, usa el Compose base y configura `REPORT_PDF_BUCKET` y
+`REPORT_PDF_REGION`. Deja `REPORT_PDF_ENDPOINT_URL` vacío para usar el
+endpoint de AWS de la región elegida. El SDK usa las credenciales del entorno
+de ejecución.
+El rol de la API necesita `s3:GetObject` y `s3:PutObject` para el prefijo
+`reports/`, además de `s3:ListBucket` para distinguir que un PDF aún no existe.

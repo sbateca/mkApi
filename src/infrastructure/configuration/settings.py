@@ -8,6 +8,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
 
+    report_pdf_bucket: str | None = None
+    report_pdf_region: str = "us-east-1"
+    report_pdf_endpoint_url: str | None = None
+
     database_url: str
     jwt_secret_key: str = Field(min_length=32)
     jwt_algorithm: Literal["HS256", "HS384", "HS512"] = "HS256"

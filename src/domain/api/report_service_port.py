@@ -21,9 +21,7 @@ class ReportServicePort(ABC):
         pass
 
     @abstractmethod
-    async def get_report_for_download(
-        self, report_id: str, actor: AuthenticatedUser
-    ) -> Report:
+    async def download_report(self, report_id: str, actor: AuthenticatedUser) -> bytes:
         pass
 
     @abstractmethod

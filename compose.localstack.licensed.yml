@@ -1,0 +1,10 @@
+services:
+  localstack:
+    image: ${LOCALSTACK_LICENSED_IMAGE:-localstack/localstack-pro:2026.11}
+    environment:
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:?Set LOCALSTACK_AUTH_TOKEN in the local environment file}
+    volumes:
+      - mkapi-localstack-licensed-data:/var/lib/localstack
+
+volumes:
+  mkapi-localstack-licensed-data:

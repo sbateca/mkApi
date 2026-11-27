@@ -23,6 +23,7 @@ from domain.spi.analyte_persistence_port import AnalytePersistencePort
 from domain.spi.authorization_port import AuthorizationPort
 from domain.spi.criteria_persistence_port import CriteriaPersistencePort
 from domain.spi.logger_port import LoggerPort, NullLogger
+from domain.spi.report_pdf_port import ReportPdfPort
 from domain.spi.report_persistence_port import ReportPersistencePort
 from domain.spi.report_test_persistence_port import ReportTestPersistencePort
 from domain.spi.sample_persistence_port import SamplePersistencePort
@@ -45,6 +46,7 @@ class ReportUseCase(ReportServicePort):
     def __init__(
         self,
         report_persistence_port: ReportPersistencePort,
+        report_pdf_port: ReportPdfPort,
         sample_persistence_port: SamplePersistencePort,
         analyte_persistence_port: AnalytePersistencePort,
         analysis_method_persistence_port: AnalysisMethodPersistencePort,
@@ -56,6 +58,7 @@ class ReportUseCase(ReportServicePort):
         logger: LoggerPort | None = None,
     ):
         self.report_persistence_port = report_persistence_port
+        self.report_pdf_port = report_pdf_port
         self.sample_persistence_port = sample_persistence_port
         self.analyte_persistence_port = analyte_persistence_port
         self.analysis_method_persistence_port = analysis_method_persistence_port
@@ -98,12 +101,10 @@ class ReportUseCase(ReportServicePort):
         self._check_action_decision(actor, AuthorizationAction.READ, report)
         return self._add_report_actions(report, actor)
 
-    async def get_report_for_download(
-        self, report_id: str, actor: AuthenticatedUser
-    ) -> Report:
+    async def download_report(self, report_id: str, actor: AuthenticatedUser) -> bytes:
         report = await self._get_report(report_id)
         self._check_action_decision(actor, AuthorizationAction.DOWNLOAD, report)
-        return report
+        return await self.report_pdf_port.get_or_create(report)
 
     def get_create_decision(self, actor: AuthenticatedUser) -> ActionDecision:
         return self._get_action_decision(actor, AuthorizationAction.CREATE)

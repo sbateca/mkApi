@@ -55,6 +55,13 @@ class ReportHandler(ReportHandlerInterface):
         )
         return self.mapper.to_response_with_actions(report)
 
+    async def download_report(
+        self, request: GetReportByIdRequestDto, actor: AuthenticatedUser
+    ) -> bytes:
+        return await self.service.download_report(
+            self.mapper.to_report_id(request), actor
+        )
+
     async def update_report(
         self, request: UpdateReportRequestDto, actor: AuthenticatedUser
     ) -> ReportResponseDto:
