@@ -105,12 +105,6 @@ class ReportUseCase(ReportServicePort):
         self._check_action_decision(actor, AuthorizationAction.DOWNLOAD, report)
         return report
 
-    async def _get_report(self, report_id: str) -> Report:
-        report = await self.report_persistence_port.get_report_by_id(report_id)
-        if report is None:
-            raise ReportNotFoundError()
-        return report
-
     def get_create_decision(self, actor: AuthenticatedUser) -> ActionDecision:
         return self._get_action_decision(actor, AuthorizationAction.CREATE)
 
@@ -162,6 +156,12 @@ class ReportUseCase(ReportServicePort):
         return await self.report_persistence_port.update_report_status(
             report_id, ReportStatus.APPROVED.value
         )
+
+    async def _get_report(self, report_id: str) -> Report:
+        report = await self.report_persistence_port.get_report_by_id(report_id)
+        if report is None:
+            raise ReportNotFoundError()
+        return report
 
     async def _validate_report_relations(self, report: Report) -> None:
         for test in report.tests:

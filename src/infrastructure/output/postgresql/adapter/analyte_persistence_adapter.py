@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from domain.model.analyte import Analyte
 from domain.spi.analyte_persistence_port import AnalytePersistencePort
 from infrastructure.output.postgresql.mapper.analyte_entity_mapper import (
@@ -32,15 +34,19 @@ class AnalytePersistenceAdapter(AnalytePersistencePort):
         analyte_entity = await self.analyte_repository.get_analyte_by_id(analyte_id)
         return self.analyte_entity_mapper.to_domain(analyte_entity)
 
-    async def get_analyte_by_name(self, name: str) -> Analyte | None:
-        analyte_entity = await self.analyte_repository.get_analyte_by_name(name)
+    async def get_analyte_by_name(
+        self, name: str, test_type_id: UUID
+    ) -> Analyte | None:
+        analyte_entity = await self.analyte_repository.get_analyte_by_name(
+            name, test_type_id
+        )
         return self.analyte_entity_mapper.to_domain(analyte_entity)
 
     async def get_analyte_by_name_excluding_id(
-        self, name: str, analyte_id: str
+        self, name: str, test_type_id: UUID, analyte_id: str
     ) -> Analyte | None:
         analyte_entity = await self.analyte_repository.get_analyte_by_name_excluding_id(
-            name, analyte_id
+            name, test_type_id, analyte_id
         )
         return self.analyte_entity_mapper.to_domain(analyte_entity)
 

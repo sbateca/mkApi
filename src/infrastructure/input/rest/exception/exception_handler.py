@@ -31,6 +31,7 @@ from domain.exception.report_exception import (
 from domain.exception.role_exception import RoleAlreadyExistsError, RoleNotFoundError
 from domain.exception.sample_exception import (
     SampleAlreadyExistsError,
+    SampleInUseError,
     SampleNotFoundError,
 )
 from domain.exception.sample_type_exception import (
@@ -45,7 +46,6 @@ from domain.exception.test_type_exception import (
 from domain.exception.user_exception import UserAlreadyExistsError, UserNotFoundError
 from domain.util.constants import (
     ANALYSIS_METHOD_ALREADY_EXISTS_ERROR_MESSAGE,
-    ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE,
     CLIENT_ALREADY_EXISTS_ERROR_MESSAGE,
     CRITERIA_ALREADY_EXISTS_ERROR_MESSAGE,
     DOMAIN_ERROR_MESSAGE,
@@ -148,6 +148,18 @@ async def sample_already_exists_exception_handler(
     )
 
 
+async def sample_in_use_exception_handler(
+    request: Request, exception: SampleInUseError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            JsonResponseContentField.TYPE.value: SampleErrorType.SAMPLE_IN_USE.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
+        },
+    )
+
+
 async def sample_not_found_exception_handler(
     request: Request, exception: SampleNotFoundError
 ) -> JSONResponse:
@@ -227,7 +239,7 @@ async def analyte_already_exists_exception_handler(
         status_code=status.HTTP_409_CONFLICT,
         content={
             JsonResponseContentField.TYPE.value: AnalyteErrorType.ANALYTE_ALREADY_EXISTS.value,
-            JsonResponseContentField.MESSAGE.value: f"{ANALYTE_ALREADY_EXISTS_ERROR_MESSAGE}: {str(exception)}",
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 

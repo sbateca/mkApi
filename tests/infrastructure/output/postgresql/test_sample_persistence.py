@@ -182,3 +182,23 @@ async def test_sample_repository_guards_client_reassignment(
     first_query = session.execute.await_args_list[0].args[0]
     assert "FOR NO KEY UPDATE" in str(first_query.compile(dialect=postgresql.dialect()))
     assert session.execute.await_count == (2 if changes_client else 1)
+
+
+async def test_delete_sample_translates_foreign_key_conflict():
+    from asyncpg.exceptions import ForeignKeyViolationError
+    from sqlalchemy.exc import IntegrityError
+
+    from domain.exception.sample_exception import SampleInUseError
+    from infrastructure.output.postgresql.repository.sample_repository import (
+        SamplePostgreSQLRepository,
+    )
+
+    session = AsyncMock()
+    session.execute.side_effect = IntegrityError(None, None, ForeignKeyViolationError())
+    repository = SamplePostgreSQLRepository(session)
+
+    with pytest.raises(SampleInUseError):
+        await repository.delete_sample(str(SAMPLE_ID))
+
+    session.rollback.assert_awaited_once()
+    session.commit.assert_not_awaited()
