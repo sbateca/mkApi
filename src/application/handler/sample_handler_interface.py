@@ -15,7 +15,9 @@ class SampleHandlerInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_samples(self) -> list[SampleResponseDto]:
+    async def get_samples(
+        self, has_report: bool | None = None
+    ) -> list[SampleResponseDto]:
         pass
 
     @abstractmethod

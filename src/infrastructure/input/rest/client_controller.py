@@ -8,6 +8,7 @@ from application.dto.request import (
     GetClientByIdRequestDto,
     UpdateClientRequestDto,
 )
+from application.dto.response.action_response_dto import ResourceActionsResponseDto
 from application.dto.response.client_response_dto import ClientResponseDto
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
@@ -23,11 +24,21 @@ from infrastructure.input.rest.security.authorization import (
     ensure_permission,
     require_permission,
 )
+from infrastructure.input.rest.security.resource_actions import (
+    get_resource_actions,
+    register_collection_actions,
+)
+
+
+class ClientWithActionsResponseDto(ClientResponseDto, ResourceActionsResponseDto):
+    pass
+
 
 router = APIRouter(
     prefix="/clients",
     tags=["Clients"],
 )
+register_collection_actions(router, ResourceType.CLIENT)
 
 
 ClientHandlerDependency = Annotated[
@@ -131,7 +142,7 @@ async def create_client(
 
 @router.get(
     "",
-    response_model=list[ClientResponseDto],
+    response_model=list[ClientWithActionsResponseDto],
     status_code=status.HTTP_200_OK,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.CLIENT))
@@ -141,10 +152,15 @@ async def get_clients(
     handler: ClientHandlerDependency,
     actor: AuthenticatedActor,
     authorization: AuthorizationDependency,
-) -> list[ClientResponseDto]:
+) -> list[ClientWithActionsResponseDto]:
     clients = await handler.get_clients()
     return [
-        client
+        ClientWithActionsResponseDto(
+            **client.model_dump(),
+            actions=get_resource_actions(
+                actor, authorization, ResourceType.CLIENT, client.id
+            ),
+        )
         for client in clients
         if authorization.is_allowed(
             actor,
@@ -156,7 +172,7 @@ async def get_clients(
 
 @router.get(
     "/{client_id}",
-    response_model=ClientResponseDto,
+    response_model=ClientWithActionsResponseDto,
     status_code=status.HTTP_200_OK,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.CLIENT))
@@ -167,7 +183,7 @@ async def get_client_by_id(
     handler: ClientHandlerDependency,
     actor: AuthenticatedActor,
     authorization: AuthorizationDependency,
-) -> ClientResponseDto:
+) -> ClientWithActionsResponseDto:
     client = await handler.get_client_by_id(request)
     ensure_permission(
         actor,
@@ -176,7 +192,12 @@ async def get_client_by_id(
         ResourceType.CLIENT,
         client.id,
     )
-    return client
+    return ClientWithActionsResponseDto(
+        **client.model_dump(),
+        actions=get_resource_actions(
+            actor, authorization, ResourceType.CLIENT, client.id
+        ),
+    )
 
 
 @router.put(

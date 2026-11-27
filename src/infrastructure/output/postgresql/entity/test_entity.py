@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID as POSTGRES_UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, query_expression, relationship
 
 from infrastructure.output.postgresql.database.base import Base
 
@@ -51,6 +51,8 @@ class TestEntity(Base):
         nullable=False,
     )
     result: Mapped[str] = mapped_column(String(150), nullable=False)
+
+    report_linked: Mapped[bool] = query_expression()
 
     test_type: Mapped["TestTypeEntity"] = relationship()
     analyte: Mapped["AnalyteEntity"] = relationship()

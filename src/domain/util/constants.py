@@ -51,7 +51,9 @@ AUTHENTICATION_FAILED_ERROR_MESSAGE = (
 )
 
 
+ACTION_UNSUPPORTED_ERROR_MESSAGE = "This action is not available for this resource."
 ACTION_FORBIDDEN_ERROR_MESSAGE = "Doesn't have permission to perform this action"
+REPORT_ALREADY_EXISTS_ERROR_MESSAGE = "This sample already has a report."
 REPORT_NOT_FOUND_ERROR_MESSAGE = "The report was not found."
 REPORT_TEST_ID_ALREADY_EXISTS_ERROR_MESSAGE = "A new report test ID already exists."
 REPORT_SAMPLE_CONSISTENCY_ERROR_MESSAGE = (
@@ -66,6 +68,8 @@ REPORT_NOT_DRAFT_ERROR_MESSAGE = "Only draft reports can be edited, deleted or a
 
 class ActionDecisionCode(Enum):
     FORBIDDEN = "forbidden"
+    UNSUPPORTED_ACTION = "unsupported_action"
+    LINKED_REPORT_TEST = "linked_report_test"
     INVALID_REPORT_STATUS = "invalid_report_status"
     REPORT_NOT_APPROVED = "report_not_approved"
     REPORT_NOT_DRAFT = "report_not_draft"

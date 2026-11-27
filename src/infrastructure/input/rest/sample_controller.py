@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from application.dto.request import (
     DeleteSampleRequestDto,
@@ -9,6 +9,7 @@ from application.dto.request import (
     UpdateSampleRequestDto,
 )
 from application.dto.response import SampleResponseDto
+from application.dto.response.action_response_dto import ResourceActionsResponseDto
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
@@ -23,8 +24,18 @@ from infrastructure.input.rest.security.authorization import (
     ensure_permission,
     require_permission,
 )
+from infrastructure.input.rest.security.resource_actions import (
+    get_resource_actions,
+    register_collection_actions,
+)
+
+
+class SampleWithActionsResponseDto(SampleResponseDto, ResourceActionsResponseDto):
+    pass
+
 
 router = APIRouter(prefix="/samples", tags=["Samples"])
+register_collection_actions(router, ResourceType.SAMPLE)
 SampleHandlerDependency = Annotated[SampleHandlerInterface, Depends(get_sample_handler)]
 
 
@@ -87,7 +98,7 @@ async def create_sample(
 
 @router.get(
     "",
-    response_model=list[SampleResponseDto],
+    response_model=list[SampleWithActionsResponseDto],
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.SAMPLE))
@@ -97,10 +108,16 @@ async def get_samples(
     handler: SampleHandlerDependency,
     actor: AuthenticatedActor,
     authorization: AuthorizationDependency,
-) -> list[SampleResponseDto]:
-    samples = await handler.get_samples()
+    has_report: Annotated[bool | None, Query(alias="hasReport")] = None,
+) -> list[SampleWithActionsResponseDto]:
+    samples = await handler.get_samples(has_report)
     return [
-        sample
+        SampleWithActionsResponseDto(
+            **sample.model_dump(),
+            actions=get_resource_actions(
+                actor, authorization, ResourceType.SAMPLE, sample.client.id
+            ),
+        )
         for sample in samples
         if authorization.is_allowed(
             actor,
@@ -112,7 +129,7 @@ async def get_samples(
 
 @router.get(
     "/{sample_id}",
-    response_model=SampleResponseDto,
+    response_model=SampleWithActionsResponseDto,
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.SAMPLE))
@@ -123,7 +140,7 @@ async def get_sample_by_id(
     handler: SampleHandlerDependency,
     actor: AuthenticatedActor,
     authorization: AuthorizationDependency,
-) -> SampleResponseDto:
+) -> SampleWithActionsResponseDto:
     sample = await handler.get_sample_by_id(request)
     ensure_permission(
         actor,
@@ -132,7 +149,12 @@ async def get_sample_by_id(
         ResourceType.SAMPLE,
         sample.client.id,
     )
-    return sample
+    return SampleWithActionsResponseDto(
+        **sample.model_dump(),
+        actions=get_resource_actions(
+            actor, authorization, ResourceType.SAMPLE, sample.client.id
+        ),
+    )
 
 
 @router.put(

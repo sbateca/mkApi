@@ -21,8 +21,10 @@ class SamplePersistenceAdapter(SamplePersistencePort):
         saved = await self.repository.save_sample(self.entity_mapper.to_entity(sample))
         return self.entity_mapper.to_domain(saved)
 
-    async def get_samples(self) -> list[Sample]:
-        return self.entity_mapper.to_domain_list(await self.repository.get_samples())
+    async def get_samples(self, has_report: bool | None = None) -> list[Sample]:
+        return self.entity_mapper.to_domain_list(
+            await self.repository.get_samples(has_report)
+        )
 
     async def get_sample_by_id(self, sample_id: str) -> Sample | None:
         entity = await self.repository.get_sample_by_id(sample_id)

@@ -202,3 +202,23 @@ async def test_delete_sample_translates_foreign_key_conflict():
 
     session.rollback.assert_awaited_once()
     session.commit.assert_not_awaited()
+
+
+async def test_available_samples_excludes_any_report_using_correlated_query():
+    from unittest.mock import Mock
+
+    from infrastructure.output.postgresql.repository.sample_repository import (
+        SamplePostgreSQLRepository,
+    )
+
+    session = AsyncMock()
+    result = Mock()
+    result.scalars.return_value.all.return_value = []
+    session.execute.return_value = result
+    repository = SamplePostgreSQLRepository(session)
+
+    assert await repository.get_samples(False) == []
+    statement = str(session.execute.await_args.args[0])
+    assert "NOT (EXISTS" in statement
+    assert "reports.sample_id = samples.id" in statement
+    assert "reports.status" not in statement

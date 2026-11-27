@@ -18,8 +18,8 @@ class SamplePostgreSQLRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_samples(self) -> list[SampleEntity]:
-        result = await self.session.execute(
+    async def get_samples(self, has_report: bool | None = None) -> list[SampleEntity]:
+        statement = (
             select(SampleEntity)
             .options(
                 selectinload(SampleEntity.sample_type),
@@ -27,6 +27,14 @@ class SamplePostgreSQLRepository:
             )
             .order_by(SampleEntity.sample_code)
         )
+        if has_report is not None:
+            report_exists = (
+                select(ReportEntity.id)
+                .where(ReportEntity.sample_id == SampleEntity.id)
+                .exists()
+            )
+            statement = statement.where(report_exists if has_report else ~report_exists)
+        result = await self.session.execute(statement)
         return result.scalars().all()
 
     async def get_sample_by_id(self, sample_id: str) -> SampleEntity | None:

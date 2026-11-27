@@ -9,6 +9,7 @@ from application.dto.request import (
     UpdateAnalyteRequestDto,
 )
 from application.dto.response import AnalyteResponseDto
+from application.dto.response.action_response_dto import ResourceActionsResponseDto
 from application.exception.request_validation_error import (
     ApplicationRequestValidationError,
 )
@@ -16,9 +17,23 @@ from application.handler.analyte_handler_interface import AnalyteHandlerInterfac
 from domain.model.authorization_action import AuthorizationAction
 from domain.util.constants import ResourceType
 from infrastructure.configuration.dependencies import get_analyte_handler
-from infrastructure.input.rest.security.authorization import require_permission
+from infrastructure.input.rest.security.authorization import (
+    AuthenticatedActor,
+    AuthorizationDependency,
+    require_permission,
+)
+from infrastructure.input.rest.security.resource_actions import (
+    get_resource_actions,
+    register_collection_actions,
+)
+
+
+class AnalyteWithActionsResponseDto(AnalyteResponseDto, ResourceActionsResponseDto):
+    pass
+
 
 router = APIRouter(prefix="/analytes", tags=["Analytes"])
+register_collection_actions(router, ResourceType.ANALYTE)
 AnalyteHandlerDependency = Annotated[
     AnalyteHandlerInterface, Depends(get_analyte_handler)
 ]
@@ -83,7 +98,7 @@ async def create_analyte(
 
 @router.get(
     "",
-    response_model=list[AnalyteResponseDto],
+    response_model=list[AnalyteWithActionsResponseDto],
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.ANALYTE))
@@ -91,13 +106,20 @@ async def create_analyte(
 )
 async def get_analytes(
     handler: AnalyteHandlerDependency,
-) -> list[AnalyteResponseDto]:
-    return await handler.get_analytes()
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> list[AnalyteWithActionsResponseDto]:
+    items = await handler.get_analytes()
+    actions = get_resource_actions(actor, authorization, ResourceType.ANALYTE)
+    return [
+        AnalyteWithActionsResponseDto(**item.model_dump(), actions=actions)
+        for item in items
+    ]
 
 
 @router.get(
     "/{analyte_id}",
-    response_model=AnalyteResponseDto,
+    response_model=AnalyteWithActionsResponseDto,
     status_code=200,
     dependencies=[
         Depends(require_permission(AuthorizationAction.READ, ResourceType.ANALYTE))
@@ -106,8 +128,12 @@ async def get_analytes(
 async def get_analyte_by_id(
     request: GetAnalyteByIdRequestDependency,
     handler: AnalyteHandlerDependency,
-) -> AnalyteResponseDto:
-    return await handler.get_analyte_by_id(request)
+    actor: AuthenticatedActor,
+    authorization: AuthorizationDependency,
+) -> AnalyteWithActionsResponseDto:
+    item = await handler.get_analyte_by_id(request)
+    actions = get_resource_actions(actor, authorization, ResourceType.ANALYTE)
+    return AnalyteWithActionsResponseDto(**item.model_dump(), actions=actions)
 
 
 @router.put(

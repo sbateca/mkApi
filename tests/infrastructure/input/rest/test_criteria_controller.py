@@ -18,7 +18,7 @@ CRITERIA_ID = UUID("b3b3b3b3-b3b3-b3b3-b3b3-b3b3b3b3b3b3")
 
 
 @pytest.mark.asyncio
-async def test_criteria_crud_routes_delegate_to_handler():
+async def test_criteria_crud_routes_delegate_to_handler(admin_resource_actions):
     response = CriteriaResponseDto(id=CRITERIA_ID, name="0 UFC/100 ml")
     handler = AsyncMock()
     handler.create_criteria.return_value = response
@@ -44,8 +44,8 @@ async def test_criteria_crud_routes_delegate_to_handler():
         expected = {"id": str(CRITERIA_ID), "name": "0 UFC/100 ml"}
         assert created.status_code == 201
         assert created.json() == expected
-        assert listed.json() == [expected]
-        assert fetched.json() == expected
+        assert listed.json() == [expected | {"actions": admin_resource_actions}]
+        assert fetched.json() == expected | {"actions": admin_resource_actions}
         assert updated.json() == expected
         assert deleted.status_code == 204
         handler.create_criteria.assert_awaited_once()

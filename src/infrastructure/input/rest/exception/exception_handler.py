@@ -26,6 +26,7 @@ from domain.exception.criteria_exception import (
 from domain.exception.domain_exception import DomainError
 from domain.exception.report_exception import (
     ReportActionDeniedError,
+    ReportAlreadyExistsError,
     ReportNotFoundError,
 )
 from domain.exception.role_exception import RoleAlreadyExistsError, RoleNotFoundError
@@ -395,6 +396,18 @@ async def application_request_validation_exception_handler(
             JsonResponseContentField.TYPE.value: ValidationErrorType.VALIDATION_ERROR.value,
             JsonResponseContentField.MESSAGE.value: REQUEST_VALIDATION_FAILED_TEXT_MESSAGE,
             JsonResponseContentField.ERRORS.value: exception.errors,
+        },
+    )
+
+
+async def report_already_exists_exception_handler(
+    request: Request, exception: ReportAlreadyExistsError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={
+            JsonResponseContentField.TYPE.value: ReportErrorType.REPORT_ALREADY_EXISTS.value,
+            JsonResponseContentField.MESSAGE.value: str(exception),
         },
     )
 

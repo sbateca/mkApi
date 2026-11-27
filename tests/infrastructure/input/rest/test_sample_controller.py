@@ -77,7 +77,9 @@ def expected_response() -> dict:
 
 
 @pytest.mark.asyncio
-async def test_sample_crud_routes_delegate_to_handler_with_ui_shape():
+async def test_sample_crud_routes_delegate_to_handler_with_ui_shape(
+    admin_resource_actions,
+):
     item = sample_response()
     handler = AsyncMock()
     handler.create_sample.return_value = item
@@ -101,12 +103,12 @@ async def test_sample_crud_routes_delegate_to_handler_with_ui_shape():
         expected = expected_response()
         assert created.status_code == 201
         assert created.json() == expected
-        assert listed.json() == [expected]
-        assert fetched.json() == expected
+        assert listed.json() == [expected | {"actions": admin_resource_actions}]
+        assert fetched.json() == expected | {"actions": admin_resource_actions}
         assert updated.json() == expected
         assert deleted.status_code == 204
         handler.create_sample.assert_awaited_once()
-        handler.get_samples.assert_awaited_once()
+        handler.get_samples.assert_awaited_once_with(None)
         handler.get_sample_by_id.assert_awaited_once()
         handler.update_sample.assert_awaited_once()
         handler.delete_sample.assert_awaited_once()
@@ -181,3 +183,19 @@ async def test_get_sample_maps_not_found_error():
         assert result.json()["type"] == "SAMPLE_NOT_FOUND"
     finally:
         app.dependency_overrides.clear()
+
+
+async def test_sample_list_passes_report_filter_to_handler():
+    handler = AsyncMock()
+    handler.get_samples.return_value = []
+    app.dependency_overrides[get_sample_handler] = lambda: handler
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.get("/samples", params={"hasReport": "false"})
+        assert response.status_code == 200
+        assert response.json() == []
+        handler.get_samples.assert_awaited_once_with(False)
+    finally:
+        app.dependency_overrides.pop(get_sample_handler, None)

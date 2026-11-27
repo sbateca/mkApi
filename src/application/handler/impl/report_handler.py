@@ -8,8 +8,8 @@ from application.dto.request.set_report_status_request_dto import (
     SetReportStatusRequestDto,
 )
 from application.dto.response import ReportResponseDto
+from application.dto.response.action_response_dto import ActionDecisionResponseDto
 from application.dto.response.report_response_dto import (
-    ActionDecisionResponseDto,
     ReportCollectionActionsResponseDto,
     ReportWithActionsResponseDto,
 )
@@ -29,9 +29,7 @@ class ReportHandler(ReportHandlerInterface):
     ) -> ReportCollectionActionsResponseDto:
         decision = self.service.get_create_decision(actor)
         return ReportCollectionActionsResponseDto(
-            create=ActionDecisionResponseDto(
-                allowed=decision.allowed, code=decision.code, reason=decision.reason
-            )
+            create=ActionDecisionResponseDto.from_decision(decision)
         )
 
     async def create_report(

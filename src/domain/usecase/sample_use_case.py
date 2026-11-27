@@ -44,9 +44,9 @@ class SampleUseCase(SampleServicePort):
         self.logger.info("Sample created", sample_id=str(created.id))
         return created
 
-    async def get_samples(self) -> list[Sample]:
+    async def get_samples(self, has_report: bool | None = None) -> list[Sample]:
         self.logger.info("Retrieving samples")
-        samples = await self.sample_persistence_port.get_samples()
+        samples = await self.sample_persistence_port.get_samples(has_report)
         self.logger.info("Samples retrieved", count=len(samples))
         return samples
 

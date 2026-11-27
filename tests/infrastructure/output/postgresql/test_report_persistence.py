@@ -242,3 +242,28 @@ async def test_report_approval_locks_sample_before_changing_status():
     assert sample_id in sample_lock.params.values()
     assert write.params["status"] == "Approved"
     session.commit.assert_awaited_once()
+
+
+async def test_report_write_conflict_rolls_back_if_sample_already_has_report():
+    from asyncpg.exceptions import UniqueViolationError
+    from sqlalchemy.exc import IntegrityError
+
+    from domain.exception.report_exception import ReportAlreadyExistsError
+    from infrastructure.output.postgresql.entity.report_entity import (
+        REPORT_SAMPLE_INDEX,
+    )
+
+    session = AsyncMock()
+    session.add = Mock()
+    violation = UniqueViolationError()
+    violation.constraint_name = REPORT_SAMPLE_INDEX
+    driver_error = RuntimeError()
+    driver_error.__cause__ = violation
+    session.flush.side_effect = IntegrityError(None, None, driver_error)
+    repository = ReportPostgreSQLRepository(session)
+
+    with pytest.raises(ReportAlreadyExistsError):
+        await repository.save_report(ReportEntity(id=uuid4()), [])
+
+    session.rollback.assert_awaited_once()
+    session.commit.assert_not_awaited()

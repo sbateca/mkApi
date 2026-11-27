@@ -18,7 +18,7 @@ SAMPLE_TYPE_ID = UUID("d52f2988-24a1-4e61-976a-cffe1838025b")
 
 
 @pytest.mark.asyncio
-async def test_sample_type_crud_routes_delegate_to_handler():
+async def test_sample_type_crud_routes_delegate_to_handler(admin_resource_actions):
     response = TypeResponseDto(id=SAMPLE_TYPE_ID, name="Bottled water")
     handler = AsyncMock()
     handler.create_sample_type.return_value = response
@@ -44,8 +44,8 @@ async def test_sample_type_crud_routes_delegate_to_handler():
         expected = {"id": str(SAMPLE_TYPE_ID), "name": "Bottled water"}
         assert created.status_code == 201
         assert created.json() == expected
-        assert listed.json() == [expected]
-        assert fetched.json() == expected
+        assert listed.json() == [expected | {"actions": admin_resource_actions}]
+        assert fetched.json() == expected | {"actions": admin_resource_actions}
         assert updated.json() == expected
         assert deleted.status_code == 204
         handler.create_sample_type.assert_awaited_once()

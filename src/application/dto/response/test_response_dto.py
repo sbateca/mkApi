@@ -22,3 +22,4 @@ class TestResponseDto(BaseModel):
     )
     criteria: CriteriaResponseDto
     result: str
+    report_linked: bool = Field(default=False, exclude=True)
